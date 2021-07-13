@@ -28,12 +28,12 @@ function build() {
       format: 'htmlsingle',
       file: 'bookmarks.html'
     }));
-  let styling = src('src/base/styles.html');
+  let styling = src('src/appends/styles.html');
 
   let merged = merge(bookmarks, styling);
 
   if (APPEND_BROWSER_SYNC_TAG) {
-    merged.add(src('src/base/browser-sync.html'));
+    merged.add(src('src/appends/browser-sync.html'));
   }
 
   return merged
