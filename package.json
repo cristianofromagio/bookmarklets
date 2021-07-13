@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/cristianofromagio/bookmarklets#readme",
   "devDependencies": {
+    "browser-sync": "^2.27.4",
     "gulp": "^4.0.2",
     "gulp-bookmarklet": "github:desholmes/gulp-bookmarklet#feature/remove-gulp-util-dep",
     "gulp-concat": "^2.6.1",
