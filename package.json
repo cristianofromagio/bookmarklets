@@ -1,0 +1,26 @@
+{
+  "name": "bookmarklets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cristianofromagio/bookmarklets.git"
+  },
+  "author": "Cristiano Fromagio <cristianofromagio>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cristianofromagio/bookmarklets/issues"
+  },
+  "homepage": "https://github.com/cristianofromagio/bookmarklets#readme",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-bookmarklet": "github:desholmes/gulp-bookmarklet#feature/remove-gulp-util-dep",
+    "gulp-concat": "^2.6.1",
+    "gulp-order": "^1.2.0",
+    "merge-stream": "^2.0.0"
+  }
+}
