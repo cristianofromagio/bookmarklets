@@ -38,7 +38,7 @@ function build() {
 
   return merged
     .pipe(order(['bookmarks.html', '*.html']))
-    .pipe(concat('bookmarklets.html'))
+    .pipe(concat('index.html'))
     .pipe(dest('dist'));
 }
 
@@ -49,7 +49,7 @@ function reload(cb) {
 
 function serve() {
   browserSync.init({
-    startPath: 'bookmarklets.html',
+    startPath: 'index.html',
     server: {
       baseDir: './dist/'
     }
