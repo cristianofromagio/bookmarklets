@@ -62,8 +62,14 @@ function listen() {
   watch(['./src/**/*'], { events: ['change'] }, build);
 }
 
+function publish() {
+  return src('dist/**/*')
+    .pipe(dest('public'));
+}
+
 const devTasks = series(appendBrowserSyncTag, build, parallel(serve, listen));
 
 exports.build = build;
+exports.publish = series(build, publish);
 exports.dev = devTasks;
 exports.default = devTasks;
