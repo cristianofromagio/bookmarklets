@@ -64,7 +64,7 @@ function listen() {
 
 function publish() {
   return src('dist/**/*')
-    .pipe(dest('public'));
+    .pipe(dest('docs'));
 }
 
 const devTasks = series(appendBrowserSyncTag, build, parallel(serve, listen));
