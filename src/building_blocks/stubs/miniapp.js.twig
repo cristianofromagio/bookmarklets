@@ -1,0 +1,92 @@
+
+/**
+ * refs:
+ *  -
+ * limitations:
+ *  -
+ */
+
+const BLOCK_NAME = "{{ scriptName }}";
+
+const removeItself = () => {
+  let e = document.querySelector("#" + BLOCK_NAME);
+  e.parentNode.removeChild(e);
+  e = null;
+};
+
+const displayError = (msg) => {
+  alert(msg);
+};
+
+let displayingTimeout;
+const displayAlert = (message) => {
+  const alert = document.querySelector("#" + BLOCK_NAME + " #alert");
+  alert.innerText = message;
+  alert.style.display = "inline-block";
+  clearTimeout(displayingTimeout);
+  displayingTimeout = setTimeout(() => {
+    alert.innerText = ";
+    alert.style.display = "none";
+  }, 3000);
+}
+
+if (document.querySelector("#" + BLOCK_NAME)) {
+  removeItself();
+} else {
+
+  let e = document.createElement("div");
+  e.id = BLOCK_NAME;
+  e.style.display = "block";
+  e.style.padding = "10px 15px";
+  e.style.fontFamily = "sans-serif";
+  e.style.position = "fixed";
+  e.style.fontSize = ".985rem";
+  e.style.zIndex = "9999";
+  e.style.right = "0px";
+  e.style.top = "0px";
+  e.style.borderBottomLeftRadius = "5px";
+  e.style.backgroundColor = "rgba(27, 32, 50, .9)";
+  e.style.margin = "0px";
+  e.style.color = "white";
+  e.style.textAlign = "center";
+
+  e.innerHTML = `
+
+    <!-- insert miniapp element styles + content here -->
+
+    <style>
+      #${BLOCK_NAME} h1 {
+        margin: .5rem 0;
+      }
+      #${BLOCK_NAME} button {
+        line-height: 1.2em;
+      }
+      #${BLOCK_NAME} #alert {
+        position: absolute;
+        bottom: -2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: .25rem .75rem;
+        background-color: #222;
+        color: #fff;
+        border: 1px solid #f1f1f1;
+        border-radius: 5px;
+        display: none;
+      }
+    </style>
+
+    <span id="alert"></span>
+
+    <h1>{{ miniappTitle }}</h1>
+  `;
+
+  let close = document.createElement("button");
+  close.onclick = () => { removeItself() };
+  close.innerHTML = "Close";
+  e.append(close);
+
+  document.body.append(e);
+
+  // insert miniapp code here
+
+}
