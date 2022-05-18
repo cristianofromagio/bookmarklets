@@ -5,6 +5,8 @@
  *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/currentTime
  *  - https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio
  *  - https://www.delftstack.com/howto/javascript/javascript-get-url/
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
  */
 
 const BLOCK_NAME = "block-youtube-timestamps";
@@ -48,11 +50,35 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
+  function getVideoInfo() {
+    try {
+      const video = document.querySelector(".video-stream");
+      const videoId = (new URL(document.location)).searchParams.get("v");
+
+      return { video, videoId };
+    } catch(err) {
+      displayError('Unable to get video');
+    }
+  }
+
   function getTimestamps() {
     let video = document.querySelector(".video-stream");
     let currentSeconds = video.currentTime;
-    console.log(video);
     return [currentSeconds, fromSecondsToISO(currentSeconds)];
+  }
+
+  function getDownloadInterval(blockElement) {
+    try {
+      let start = blockElement.querySelector('input[name="start"]:checked').value;
+      let startSeconds = blockElement.querySelector('input[name="start"]:checked').dataset.seconds;
+      let end = blockElement.querySelector('input[name="end"]:checked').value;
+      let offset = 5; // this is used so audio is not out of sync with video at start
+      let offsetStart = fromSecondsToISO(startSeconds - Number(offset));
+
+      return { start, startSeconds, end, offset, offsetStart };
+    } catch (err) {
+      displayError('Select a start / end timestamp');
+    }
   }
 
   function fromSecondsToISO(seconds) {
@@ -61,6 +87,35 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   function callSeek(time) {
     document.querySelector(".video-stream").currentTime = time;
+  }
+
+  function saveVideoScreenshot(timestamp) {
+    const { videoId } = getVideoInfo();
+    // timestamp is iniatialy formatted as "hh:mm:ss.mm", then formatted to "hhmmss"
+    const filenameSafeTimestamp = timestamp.split('.')[0].replace(/:/g,"");
+
+    // workaround to give time to seek/time-travel when clicked on a timestamp (bubble from entry click)
+    setTimeout(() => {
+      let videoEl = document.querySelector(".video-stream");
+      let canvasEl = document.createElement("canvas");
+      canvasEl.width = 1280;
+      canvasEl.height = 720;
+
+      if (!videoEl.paused) {
+        videoEl.pause();
+        updateMediaControlLabel(mediaState.play);
+      }
+
+      canvasEl.getContext('2d').drawImage(videoEl, 0, 0);
+
+      let anchorEl = document.createElement("a");
+      anchorEl.href = canvasEl.toDataURL();
+      anchorEl.download = `${videoId} - ${filenameSafeTimestamp}.png`;
+      anchorEl.click();
+
+      canvasEl = null;
+      anchorEl = null;
+    }, 300);
   }
 
   function timeTravel(amount) {
@@ -75,8 +130,8 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
 
   const mediaState = {
-    play: '⏵ Play',
-    pause: '⏸ Pause'
+    play: '▶️ Play',
+    pause: '⏸️ Pause'
   }
 
   let e = document.createElement("div");
@@ -148,7 +203,10 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     <br><br>
 
-    <button id="copyCommand">Copy download command</button>
+    <button style="display:block;width:100%" id="copyVideoCommand">Copy video download command</button>
+    <button style="display:block;width:100%" id="copyAudioCommand">Copy audio download command</button>
+
+    <br>
   `;
 
   let close = document.createElement("button");
@@ -190,6 +248,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     `;
     entry.onclick = () => { callSeek(display[0]) };
     e.querySelector("#list").appendChild(entry);
+
+    var screenshot = document.createElement('button');
+    screenshot.title = `Save screenshot at ${display[1]}`;
+    screenshot.innerHTML = "📸";
+    screenshot.onclick = () => { saveVideoScreenshot(display[1]) };
+    entry.appendChild(screenshot);
   });
 
   e.querySelectorAll('.time-control').forEach(item => {
@@ -202,23 +266,23 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     });
   });
 
-  e.querySelector("#copyCommand").addEventListener('click', () => {
-    try {
-      const start = e.querySelector('input[name="start"]:checked').value;
-      const startSeconds = e.querySelector('input[name="start"]:checked').dataset.seconds;
-      const end = e.querySelector('input[name="end"]:checked').value;
-      const offset = 5; // this is used so audio is not out of sync with video at start
-      const offsetStart = fromSecondsToISO(startSeconds - Number(offset));
-      const videoUrl = window.location.href;
-      // const videoTitle = document.title; // sadly this cant always be trusted
-      const videoTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
-      const terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp4"`;
+  e.querySelector("#copyVideoCommand").addEventListener('click', () => {
+    const { offset, offsetStart, end } = getDownloadInterval(e);
+    const videoUrl = window.location.href;
+    // const videoTitle = document.title; // sadly this cant always be trusted
+    const videoTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
+    const terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp4"`;
 
-      console.log(terminalCommand);
-      copyToClipboard(terminalCommand);
-    } catch (e) {
-      displayError('Select a start / end timestamp');
-    }
+    copyToClipboard(terminalCommand);
+  });
+
+  e.querySelector("#copyAudioCommand").addEventListener('click', () => {
+    const { offset, offsetStart, end } = getDownloadInterval(e);
+    const videoUrl = window.location.href;
+    const audioTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
+    const terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${audioTitle}.mp3"`;
+
+    copyToClipboard(terminalCommand);
   });
 
 }
