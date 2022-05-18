@@ -2,6 +2,7 @@
  * refs:
  *  - https://stackoverflow.com/a/36592176 (merge stream)
  *  - https://stackoverflow.com/a/40572663 (browser-sync not reloading)
+ *  - https://nightlycommit.github.io/twing/templates.html
  */
 
 const
