@@ -203,10 +203,14 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     <br><br>
 
-    <button style="display:block;width:100%" id="copyVideoCommand">Copy video download command</button>
-    <button style="display:block;width:100%" id="copyAudioCommand">Copy audio download command</button>
+    <select style="display:block;width:100%" name="copyCommandSelect" id="copyCommandSelect">
+      <option value="video" selected>Video download command</option>
+      <option value="video-squared">Video (squared) download command</option>
+      <option value="video-portrait">Video (portrait) download command</option>
+      <option value="audio">Audio download command</option>
+    </select>
 
-    <br>
+    <button style="display:block;width:100%" id="copyCommand">Copy selected command</button>
   `;
 
   let close = document.createElement("button");
@@ -266,23 +270,35 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     });
   });
 
-  e.querySelector("#copyVideoCommand").addEventListener('click', () => {
+  e.querySelector("#copyCommand").addEventListener('click', () => {
     const { offset, offsetStart, end } = getDownloadInterval(e);
     const videoUrl = window.location.href;
     // const videoTitle = document.title; // sadly this cant always be trusted
     const videoTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
-    const terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp4"`;
 
-    copyToClipboard(terminalCommand);
-  });
+    let terminalCommand = '';
+    const selectedOption = e.querySelector("#copyCommandSelect").value;
 
-  e.querySelector("#copyAudioCommand").addEventListener('click', () => {
-    const { offset, offsetStart, end } = getDownloadInterval(e);
-    const videoUrl = window.location.href;
-    const audioTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
-    const terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${audioTitle}.mp3"`;
+    switch(selectedOption) {
+      case 'video':
+        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp4"`;
+        break;
+      case 'video-squared':
+        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} -vf "crop=in_h" "${videoTitle}.mp4"`;
+        break;
+      case 'video-portrait':
+        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`;
+        break;
+      case 'audio':
+        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp3"`;
+        break;
+      default:
+        displayError("Invalid option: can't copy command");
+    }
 
-    copyToClipboard(terminalCommand);
+    if (terminalCommand) {
+      copyToClipboard(terminalCommand);
+    }
   });
 
 }
