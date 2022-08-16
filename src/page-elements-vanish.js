@@ -42,7 +42,7 @@ const copyToClipboard = (content) => {
   el.select();
   document.execCommand('copy');
   document.body.removeChild(el);
-  displayAlert('Command copied!');
+  displayAlert('Config copied!');
 };
 
 if (document.querySelector("#" + BLOCK_NAME)) {
