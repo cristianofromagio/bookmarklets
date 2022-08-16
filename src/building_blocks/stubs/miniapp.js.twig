@@ -25,7 +25,7 @@ const displayAlert = (message) => {
   alert.style.display = "inline-block";
   clearTimeout(displayingTimeout);
   displayingTimeout = setTimeout(() => {
-    alert.innerText = ";
+    alert.innerText = "";
     alert.style.display = "none";
   }, 3000);
 }
