@@ -16,8 +16,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  let searchLink = '';
-
   let e = document.createElement("dialog");
   e.id = BLOCK_NAME;
   e.style.fontSize = "16px";
@@ -99,7 +97,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         #${BLOCK_NAME} input {
           min-width: 250px;
           max-width: 600px;
-          width: ${searchLink.length}ch;
           display: block;
           margin-bottom: .5em;
         }
@@ -107,6 +104,10 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
       <div style="padding:1rem">
         <form id="bookmarkletForm" style="margin:0;padding:0">
+          <p>Bookmarklet template code:</p>
+          <input type="text" id="bookmarkletTemplate"/>
+          <p>Bookmarklet template placeholder:</p>
+          <input type="text" id="bookmarkletPlaceholder"/>
           <p>Bookmarklet name:</p>
           <input type="text" id="bookmarkletName"/>
           <p>Bookmarklet copy string content:</p>
@@ -126,17 +127,20 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   document.body.append(e);
 
-  const stringCopyBookmarklet = `javascript:(function()%7B%22use%20strict%22%3Bvar%20copyToClipboard%3Dfunction(e)%7Bvar%20o%3Ddocument.createElement(%22textarea%22)%3Bo.value%3De%2Co.setAttribute(%22readonly%22%2C%22%22)%2Co.style.position%3D%22absolute%22%2Co.style.left%3D%22-9999px%22%2Cdocument.body.appendChild(o)%2Co.select()%2Cdocument.execCommand(%22copy%22)%2Cdocument.body.removeChild(o)%2Cconsole.log(%22string%20coppied!%22)%7D%3BcopyToClipboard(%22%24PLACEHOLDER%24%22)%3B%7D)()`;
-  const stringCopyBookmarkletPlaceholder = "%24PLACEHOLDER%24"; // %24 == $
+  function addSlashes( str ) {
+    return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+  }
 
   e.querySelector("#bookmarkletForm").addEventListener('submit', (ev) => {
     ev.preventDefault();
     e.querySelector("#bookmarkletResult").innerHTML = '';
 
-    const nameValue = e.querySelector("#bookmarkletName").value;
-    const stringValue = e.querySelector("#bookmarkletString").value;
+    const templateValue = e.querySelector("#bookmarkletTemplate").value.trim();
+    const placeholderValue = e.querySelector("#bookmarkletPlaceholder").value.trim();
+    const nameValue = e.querySelector("#bookmarkletName").value.trim();
+    const stringValue = e.querySelector("#bookmarkletString").value.trim();
 
-    const stringCopyContent = stringCopyBookmarklet.replace(stringCopyBookmarkletPlaceholder, stringValue);
+    const stringCopyContent = templateValue.replace(placeholderValue, addSlashes(stringValue));
 
     const link = document.createElement('a');
     link.innerText = nameValue;
