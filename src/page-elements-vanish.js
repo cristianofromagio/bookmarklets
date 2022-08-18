@@ -6,6 +6,7 @@
  * refs:
  *  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
  *  - https://stackoverflow.com/a/55537385
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLDetailsElement/toggle_event
  */
 
 const BLOCK_NAME = "page-elements-vanish";
