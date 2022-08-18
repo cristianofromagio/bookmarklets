@@ -180,8 +180,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       <input spellcheck="false" class="${BLOCK_NAME}-config-sync mb-1" data-config-name="compare" id="comparingValue"/>
 
       <hr>
-      <details style="text-align:left;margin:0 0 4px 0;padding:2px;border:1px solid rgba(255,255,255,.2);border-radius:3px">
-        <summary style="margin:4px 0;padding:0;user-select:none;cursor:pointer">Quick config</summary>
+      <details id="${BLOCK_NAME}-config-toggle" style="text-align:left;margin:0 0 4px 0;padding:2px;border:1px solid rgba(255,255,255,.2);border-radius:3px">
+        <summary style="height:35px;line-height:35px;margin:4px 0;padding:0;user-select:none;cursor:pointer">
+          Quick config
+          <button id="focusConfigButtonTrigger" style="float:right">focus</button>
+        </summary>
         <textarea spellcheck="false" rows="4" id="${BLOCK_NAME}-config"></textarea>
         <button class="d-full" id="${BLOCK_NAME}-config-copy">copy</button>
       </details>
@@ -291,6 +294,15 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     pastedData = clipboardData.getData('Text');
 
     fillFields(e, pastedData);
+  });
+
+  e.querySelector("#focusConfigButtonTrigger").addEventListener('click', () => {
+    const detailsEl = e.querySelector(`#${BLOCK_NAME}-config-toggle`);
+    if (!detailsEl.open) {
+      detailsEl.toggleAttribute('open');
+    }
+
+    e.querySelector(`#${BLOCK_NAME}-config`).focus();
   });
 
   e.querySelector(`#${BLOCK_NAME}-config-copy`).addEventListener('click', () => {
