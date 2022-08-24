@@ -6,6 +6,7 @@
  * refs:
  *  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
  *  - https://stackoverflow.com/a/55537385
+ *  - https://www.tutorialrepublic.com/faq/how-to-disable-spell-checking-in-html-forms.php
  *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLDetailsElement/toggle_event
  *  - (why we cant run a "paste button" from bookmarklet)
  *    - https://daily-dev-tips.com/posts/javascript-paste-text-from-the-clipboard/
@@ -200,7 +201,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   let close = document.createElement("button");
   close.onclick = () => { removeItself() };
-  close.className = "mb-1";
+  close.style.marginBottom = "1rem";
   close.innerHTML = "Close";
   e.append(close);
 
