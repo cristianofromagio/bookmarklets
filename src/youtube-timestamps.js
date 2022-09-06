@@ -72,10 +72,22 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       let start = blockElement.querySelector('input[name="start"]:checked').value;
       let startSeconds = blockElement.querySelector('input[name="start"]:checked').dataset.seconds;
       let end = blockElement.querySelector('input[name="end"]:checked').value;
-      let offset = 5; // this is used so audio is not out of sync with video at start
-      let offsetStart = fromSecondsToISO(startSeconds - Number(offset));
+      let offset = Number(5); // this is used so audio is not out of sync with video at start
+      let offsetStartSeconds = 0;
 
-      return { start, startSeconds, end, offset, offsetStart };
+      // if offset is bigger than start, there is padding to use
+      if (startSeconds >= offset) {
+        offsetStartSeconds = startSeconds - offset;
+      }
+
+      // if offset would put start at negative, use start instead (no offset)
+      if ((startSeconds - offset) < Number(0)) {
+        offsetStartSeconds = startSeconds;
+      }
+
+      let offsetStart = fromSecondsToISO(offsetStartSeconds);
+
+      return { start, startSeconds, end, offset, offsetStart, offsetStartSeconds };
     } catch (err) {
       displayError('Select a start / end timestamp');
     }
@@ -271,26 +283,31 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   });
 
   e.querySelector("#copyCommand").addEventListener('click', () => {
-    const { offset, offsetStart, end } = getDownloadInterval(e);
+    const { startSeconds, offsetStartSeconds, offset, offsetStart, end } = getDownloadInterval(e);
     const videoUrl = window.location.href;
     // const videoTitle = document.title; // sadly this cant always be trusted
     const videoTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
 
-    let terminalCommand = '';
     const selectedOption = e.querySelector("#copyCommandSelect").value;
+    let terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
+
+    // add offset only if there is offset applied to the interval
+    if (startSeconds > offsetStartSeconds) {
+      terminalCommand += ` -ss ${offset}`;
+    }
 
     switch(selectedOption) {
       case 'video':
-        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp4"`;
+        terminalCommand += ` "${videoTitle}.mp4"`;
         break;
       case 'video-squared':
-        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} -vf "crop=in_h" "${videoTitle}.mp4"`;
+        terminalCommand += ` -vf "crop=in_h" "${videoTitle}.mp4"`;
         break;
       case 'video-portrait':
-        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`;
+        terminalCommand += ` -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`;
         break;
       case 'audio':
-        terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')" -ss ${offset} "${videoTitle}.mp3"`;
+        terminalCommand += ` "${videoTitle}.mp3"`;
         break;
       default:
         displayError("Invalid option: can't copy command");
