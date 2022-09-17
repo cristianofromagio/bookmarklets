@@ -164,11 +164,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .mb-1 {
         margin-bottom: .5rem;
       }
-      .${BLOCK_NAME}-vanished-element {
-        visibility: hidden;
-        opacity: 0;
-        height: 0;
-      }
     </style>
 
     <span id="alert"></span>
@@ -206,6 +201,19 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.append(close);
 
   document.body.append(e);
+
+  if (!document.querySelector(`#${BLOCK_NAME}-stylesheet`)) {
+    let vanishStylesheet = document.createElement("style");
+    vanishStylesheet.id = `#${BLOCK_NAME}-stylesheet`;
+    vanishStylesheet.innerHTML = `
+      .${BLOCK_NAME}-vanished-element {
+        visibility: hidden;
+        opacity: 0;
+        height: 0;
+      }
+    `;
+    document.head.append(vanishStylesheet);
+  }
 
   const config = new Map([
     ["elementsSelector", ""],
