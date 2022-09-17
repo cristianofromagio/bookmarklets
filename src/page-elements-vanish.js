@@ -164,11 +164,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .mb-1 {
         margin-bottom: .5rem;
       }
-      .${BLOCK_NAME}-vanished-element {
-        visibility: hidden;
-        opacity: 0;
-        height: 0;
-      }
     </style>
 
     <span id="alert"></span>
@@ -206,6 +201,19 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.append(close);
 
   document.body.append(e);
+
+  if (!document.querySelector(`#${BLOCK_NAME}-stylesheet`)) {
+    let vanishStylesheet = document.createElement("style");
+    vanishStylesheet.id = `#${BLOCK_NAME}-stylesheet`;
+    vanishStylesheet.innerHTML = `
+      .${BLOCK_NAME}-vanished-element {
+        visibility: hidden;
+        opacity: 0;
+        height: 0;
+      }
+    `;
+    document.head.append(vanishStylesheet);
+  }
 
   const config = new Map([
     ["elementsSelector", ""],
@@ -262,14 +270,25 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         return;
       }
 
+      let comparingValueText = comparingValue.toLowerCase();
+      const isNegation = (comparingValueText[0] === "~") ? true : false;
+
       selectorAll.forEach((el) => {
         const textBlock = el.querySelector(comparingText);
-        if (!textBlock) {return;}
+        if (!textBlock) { return }
 
         const textContent = textBlock.textContent;
         const textContentLower = textContent.trim().toLowerCase();
-        if (!textContentLower.includes(comparingValue.toLowerCase())) {
-          el.classList.add(`${BLOCK_NAME}-vanished-element`);
+
+        if (isNegation) {
+          let comparingValueTextWithoutNegation = comparingValueText.substring(1); // removes ~ symbol
+          if (textContentLower.includes(comparingValueTextWithoutNegation)) {
+            el.classList.add(`${BLOCK_NAME}-vanished-element`);
+          }
+        } else {
+          if (!textContentLower.includes(comparingValueText)) {
+            el.classList.add(`${BLOCK_NAME}-vanished-element`);
+          }
         }
       });
     } catch(err) {
