@@ -89,8 +89,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   function getDownloadInterval(blockElement) {
     try {
       let start = blockElement.querySelector('input[name="start"]:checked').value;
-      let startSeconds = blockElement.querySelector('input[name="start"]:checked').dataset.seconds;
       let end = blockElement.querySelector('input[name="end"]:checked').value;
+
+      if (!start && !end) return;
+
+      let startSeconds = blockElement.querySelector('input[name="start"]:checked').dataset.seconds;
       let offset = Number(5); // this is used so audio is not out of sync with video at start
       let offsetStartSeconds = 0;
 
@@ -412,10 +415,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   document.body.append(e);
 
   const videoStream = document.querySelector(".video-stream");
+  if (videoStream) {
   if (videoStream.paused) {
     updateMediaControlLabel(mediaState.play);
   } else {
     updateMediaControlLabel(mediaState.pause);
+  }
   }
 
   e.querySelector("#mediaControlTrigger").addEventListener('click', () => {
@@ -469,17 +474,24 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   });
 
   e.querySelector("#copyCommand").addEventListener('click', () => {
-    const { startSeconds, offsetStartSeconds, offset, offsetStart, end } = getDownloadInterval(e);
+
     const videoUrl = window.location.href;
     // const videoTitle = document.title; // sadly this cant always be trusted
     const videoTitle = new Date().toISOString().substring(0, 19).replace("T", "-").replace(/:/g, "");
-
     const selectedOption = e.querySelector("#copyCommandSelect").value;
-    let terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
+    let terminalCommand;
+
+    try {
+      const { startSeconds, offsetStartSeconds, offset, offsetStart, end } = getDownloadInterval(e);
+
+      terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
 
     // add offset only if there is offset applied to the interval
     if (startSeconds > offsetStartSeconds) {
       terminalCommand += ` -ss ${offset}`;
+      }
+    } catch(e) {
+      return;
     }
 
     switch(selectedOption) {
