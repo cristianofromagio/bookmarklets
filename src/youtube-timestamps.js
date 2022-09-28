@@ -7,14 +7,21 @@
  *  - https://www.delftstack.com/howto/javascript/javascript-get-url/
  *  - https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
  *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/videoHeight
+ *  - https://fonts.google.com/icons
+ *  - https://editor.method.ac/
+ *  - https://jakearchibald.github.io/svgomg/
+ *  - https://www.delftstack.com/howto/javascript/check-if-string-is-number-javascript/
+ *  - https://www.javascripttutorial.net/javascript-throw-exception/
  */
 
-const BLOCK_NAME = "block-youtube-timestamps";
+const BLOCK_NAME = "youtube-timestamps";
 
 const removeItself = () => {
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
   e = null;
+  window.blockFn = undefined;
 };
 
 const displayError = (msg) => {
@@ -49,6 +56,15 @@ const displayAlert = (message) => {
 if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
+
+  window.blockFn = {};
+  window.blockFn.removeItself = removeItself;
+
+  function nukeElement(el) {
+    el.parentNode.removeChild(el);
+    el = null;
+  }
+  window.blockFn.nukeElement = nukeElement;
 
   function getVideoInfo() {
     try {
@@ -100,6 +116,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   function callSeek(time) {
     document.querySelector(".video-stream").currentTime = time;
   }
+  window.blockFn.callSeek = callSeek;
 
   function saveVideoScreenshot(timestamp) {
     const { videoId } = getVideoInfo();
@@ -146,29 +163,138 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     pause: '⏸️ Pause'
   }
 
-  let e = document.createElement("div");
+  let e = document.createElement("details");
   e.id = BLOCK_NAME;
-  e.style.display = "block";
-  e.style.padding = "10px 15px";
-  e.style.fontFamily = "sans-serif";
-  e.style.position = "fixed";
-  e.style.fontSize = ".985rem";
-  e.style.zIndex = "9999";
-  e.style.right = "0px";
-  e.style.top = "0px";
-  e.style.borderBottomLeftRadius = "5px";
-  e.style.backgroundColor = "rgba(27, 32, 50, .9)";
-  e.style.margin = "0px";
-  e.style.color = "white";
-  e.style.textAlign = "center";
-
+  e.setAttribute("open", "");
   e.innerHTML = `
     <style>
-      #${BLOCK_NAME} h1 {
-        margin: .5rem 0;
+      #${BLOCK_NAME} {
+        display: block;
+        padding: 0;
+        font-family: sans-serif;
+        position: fixed;
+        font-size: 16px;
+        z-index: 9999;
+        right: 0;
+        top: 0;
+        border-radius: 5px;
+        background-color: rgba(27, 32, 50, .9);
+        margin: auto;
+        color: white;
+        border: 3px solid #4d646f;
+        text-align: center;
+        width: 300px;
+      }
+      #${BLOCK_NAME} > summary {
+        background-color: #607D8B;
+        color: #fff;
+        cursor: pointer;
+        font-size: .75em;
+        padding: .5em .75em;
+        text-align: left;
+        user-select: none;
+        margin: 0;
+      }
+      /* required to overwrite default website font-family */
+      #${BLOCK_NAME} * {
+        font-family: sans-serif;
+        box-sizing: border-box;
       }
       #${BLOCK_NAME} button {
-        line-height: 1.2em;
+        background-clip: padding-box;
+        background-color: #607D8B;
+        border-radius: 3px;
+        border: none;
+        box-shadow: inset 0 -4px rgba(0,0,0,0.2);
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        font-size: .75em;
+        font-weight: 600;
+        line-height: 30px;
+        margin: .25em;
+        overflow: hidden;
+        padding: 0 1.5em;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+      #${BLOCK_NAME} button.time-control {
+        padding: 0 .5em;
+        text-transform: lowercase;
+        flex: 1;
+      }
+      #${BLOCK_NAME} input[type=text] {
+        color: #262626;
+        font-size: 16px;
+        line-height: 20px;
+        min-height: 28px;
+        border-radius: 3px;
+        padding: 8px;
+        background: #FBFBFB;
+        margin: 0;
+        box-sizing: border-box;
+        width: 100%;
+        font-weight: bold;
+      }
+      #${BLOCK_NAME} select {
+        cursor: pointer;
+        font-size: 16px;
+        margin: 8px .25em 0;
+        padding: 8px 6px;
+        outline: 2px solid #607D8B;
+        box-sizing: border-box;
+        border-radius: 3px;
+        color: #262626;
+        -webkit-appearance: none;
+        box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
+        background: #FBFBFB url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" height="63" width="117" fill="black"><path d="M115 2c-1-2-4-2-5 0L59 53 7 2a4 4 0 00-5 5l54 54 2 2 3-2 54-54c2-1 2-4 0-5z"/></svg>') calc(100% - 12px) 50%/12px no-repeat;
+      }
+      #${BLOCK_NAME} #alert {
+        position: absolute;
+        bottom: -.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: .25rem .75rem;
+        background-color: #222;
+        color: #fff;
+        border: 1px solid #f1f1f1;
+        border-radius: 5px;
+        display: none;
+        font-size: .75rem;
+      }
+      #${BLOCK_NAME} p {
+        margin: 4px 0 2px;
+        text-align: left;
+      }
+      #${BLOCK_NAME} hr {
+        padding: 0;
+        margin: 8px 0;
+        border: revert;
+      }
+      .${BLOCK_NAME}-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      #${BLOCK_NAME} .move-handler {
+      	float: right;
+        font-weight: bolder;
+        padding: .125rem .5rem;
+        margin-top: -.125rem;
+        background-color: rgba(0,0,0,.1);
+        border-radius: 3px;
+        cursor: move;
+      }
+
+      #${BLOCK_NAME} .fb-100 {
+        flex-basis: 100%;
+      }
+      #${BLOCK_NAME} .mb-1 {
+        margin-bottom: .5rem;
       }
       #${BLOCK_NAME} #list {
         font-size: 1.25rem;
@@ -179,56 +305,106 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         padding-bottom: .25em;
         transition: all .3s ease;
       }
-      #${BLOCK_NAME} #alert {
-        position: absolute;
-        bottom: -2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: .25rem .75rem;
-        background-color: #222;
-        color: #fff;
-        border: 1px solid #f1f1f1;
-        border-radius: 5px;
-        display: none;
+      #${BLOCK_NAME} .custom-time-control {
+        display: flex;
+        flex-direction: column;
+        margin: 3px;
+
+      }
+      #${BLOCK_NAME} .custom-time-control input {
+        padding: 0;
+        margin: 0;
+        text-align:center;
+        min-height: auto;
+        font-size: 12px;
+        height: 16px;
+        font-family: sans-serif;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border: 0;
+      }
+      #${BLOCK_NAME} .custom-time-control input:focus {
+        outline: none;
+      }
+      #${BLOCK_NAME} .custom-time-control button {
+        margin: 0;
+        line-height: 14px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+
+      #${BLOCK_NAME} .timestamp-delete,
+      #${BLOCK_NAME} .timestamp-screenshot {
+        padding: 0 .75em;
+      }
+      #${BLOCK_NAME} .timestamp-delete span::after,
+      #${BLOCK_NAME} .timestamp-screenshot span::after {
+        content: "";
+        background-size: 100%;
+        display: inline-block;
+        vertical-align: middle;
+        margin-bottom: 2px;
+        width: 14px;
+        height: 14px;
+      }
+
+      #${BLOCK_NAME} .timestamp-delete span::after {
+        background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="m3 14-1-1-1-1V3H0V1h4V0h6v1h4v2h-1v9l-1 1-1 1H3zm2-3h1V4H5v7zm3 0h1V4H8v7z"/></svg>') no-repeat center;
+      }
+      #${BLOCK_NAME} .timestamp-screenshot span::after {
+        background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M7 10h2l1-2-1-2-2-1-2 1-1 2 1 2h2zm-5 3H0V3l2-1h2l1-2h4l1 2h2l2 1v10H2z"/></svg>') no-repeat center;
       }
     </style>
 
+    <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
+
     <span id="alert"></span>
 
-    <h1>YouTube Timestamps</h1>
+    <div style="padding: 8px">
+
     <div id="list-container">
       <ul id="list"></ul>
     </div>
 
+      <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
     <button id="createTimestampTrigger">Snapshot timestamp</button>
-
     <button id="mediaControlTrigger">${ mediaState.play }</button>
+      </div>
 
-    <br><br>
+      <hr class="mb-1">
+
+      <div class="${BLOCK_NAME}-action-buttons">
 
     <button class="time-control" data-amount="-5"> -5s </button>
     <button class="time-control" data-amount="-1"> -1s </button>
     <button class="time-control" data-amount="-.5"> -.5s </button>
+
+        <div class="custom-time-control" style="flex:1">
+          <input type="text" id="custom-time-control-amount"/>
+          <button class="time-control" data-amount="x">
+            #
+          </button>
+        </div>
+
     <button class="time-control" data-amount=".5"> +.5s </button>
     <button class="time-control" data-amount="1"> +1s </button>
     <button class="time-control" data-amount="5"> +5s </button>
 
-    <br><br>
-
-    <select style="display:block;width:100%" name="copyCommandSelect" id="copyCommandSelect">
+        <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
       <option value="video" selected>Video download command</option>
       <option value="video-squared">Video (squared) download command</option>
       <option value="video-portrait">Video (portrait) download command</option>
       <option value="audio">Audio download command</option>
     </select>
 
-    <button style="display:block;width:100%" id="copyCommand">Copy selected command</button>
-  `;
+        <button class="fb-100 mb-1" id="copyCommand">Copy selected command</button>
 
-  let close = document.createElement("button");
-  close.onclick = () => { removeItself() };
-  close.innerHTML = "Close";
-  e.append(close);
+        <button
+          onclick="blockFn.removeItself()"
+          class="fb-100">Close</button>
+      </div>
+    </div>
+  `;
 
   document.body.append(e);
 
@@ -317,5 +493,44 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       copyToClipboard(terminalCommand);
     }
   });
+
+  let offset = [0, 0];
+  let moveTriggered = false;
+
+  const moveHandler = document.getElementById('moveHandler');
+
+  moveHandler.addEventListener('mousedown', (ev) => {
+    moveTriggered = true;
+    ev.preventDefault();
+
+    const { top, left } = e.getBoundingClientRect();
+
+    offset = [
+      left - ev.clientX,
+      top - ev.clientY
+    ];
+  }, true);
+
+  moveHandler.addEventListener('mouseup', () => {
+    moveTriggered = false;
+  }, true);
+
+  // this is useful if moveHandler is not small,
+  //  otherwise, it falls behind the positioning style update and breaks out of moving
+  moveHandler.addEventListener('mouseleave', () => {
+    moveTriggered = false;
+  }, true);
+
+  moveHandler.addEventListener('mousemove', (ev) => {
+    if (!moveTriggered) return;
+    ev.preventDefault();
+
+    // set right to default value, needed for calculations
+    // (otherwise element stretch from 0-right to the new position)
+    e.style.right = 'auto';
+
+    e.style.left = Number(ev.clientX + offset[0]) + 'px';
+    e.style.top  = Number(ev.clientY + offset[1]) + 'px';
+  }, true);
 
 }
