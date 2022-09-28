@@ -3,6 +3,7 @@
  * 	- https://help.archive.org/hc/en-us/articles/360001513491-Save-Pages-in-the-Wayback-Machine
  *  - https://en.wikipedia.org/wiki/Help:Using_the_Wayback_Machine#JavaScript_bookmarklet
  *  - https://developer.mozilla.org/en-US/docs/Web/API/Window/open
+ *  - https://stackoverflow.com/a/40740791
  *
  * limitations:
  *  - requires dialog element support
@@ -112,12 +113,25 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         display: block;
         margin-bottom: .5em;
       }
+
+      #${BLOCK_NAME} button[type=submit] span::after {
+        content: "";
+        background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="white"><g><path d="M11 2H7V0h7v7h-2V3L7 8 6 7l5-5z"/><path d="M6 2H0v12h12V8h-2v4H2V4h4V2z"/></g></svg>');
+        background-size: 100% 100%;
+        display: inline-block;
+        margin: 0 5px;
+        padding: 0;
+        width: 11px;
+        height: 11px;
+      }
     </style>
 
     <div style="padding:1rem">
       <form id="search-form" style="margin:0;padding:0">
         <input type="text" id="search-link" value="${ searchLink }"/>
-        <button type="submit">search wayback machine</button>
+        <button type="submit">
+          <span>search wayback machine</span>
+        </button>
       </form>
     </div>
   `;
