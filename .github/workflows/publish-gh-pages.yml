@@ -24,9 +24,9 @@ jobs:
         run: npm ci
 
       - name: Build files
+        # already on gh-pages
         run: |
-          git checkout gh-pages
-          git merge main
+          git merge origin/main
           npx gulp publish
 
       - name: Commit new assets
