@@ -371,22 +371,22 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     <div style="padding: 8px">
 
-    <div id="list-container">
-      <ul id="list"></ul>
-    </div>
+      <div id="list-container">
+        <ul id="list"></ul>
+      </div>
 
       <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
-    <button id="createTimestampTrigger">Snapshot timestamp</button>
-    <button id="mediaControlTrigger">${ mediaState.play }</button>
+        <button id="createTimestampTrigger">Snapshot timestamp</button>
+        <button id="mediaControlTrigger">${ mediaState.play }</button>
       </div>
 
       <hr class="mb-1">
 
       <div class="${BLOCK_NAME}-action-buttons">
 
-    <button class="time-control" data-amount="-5"> -5s </button>
-    <button class="time-control" data-amount="-1"> -1s </button>
-    <button class="time-control" data-amount="-.5"> -.5s </button>
+        <button class="time-control" data-amount="-5"> -5s </button>
+        <button class="time-control" data-amount="-1"> -1s </button>
+        <button class="time-control" data-amount="-.5"> -.5s </button>
 
         <div class="custom-time-control" style="flex:1">
           <input type="text" id="custom-time-control-amount"/>
@@ -395,16 +395,16 @@ if (document.querySelector("#" + BLOCK_NAME)) {
           </button>
         </div>
 
-    <button class="time-control" data-amount=".5"> +.5s </button>
-    <button class="time-control" data-amount="1"> +1s </button>
-    <button class="time-control" data-amount="5"> +5s </button>
+        <button class="time-control" data-amount=".5"> +.5s </button>
+        <button class="time-control" data-amount="1"> +1s </button>
+        <button class="time-control" data-amount="5"> +5s </button>
 
         <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
-      <option value="video" selected>Video download command</option>
-      <option value="video-squared">Video (squared) download command</option>
-      <option value="video-portrait">Video (portrait) download command</option>
-      <option value="audio">Audio download command</option>
-    </select>
+          <option value="video" selected>Video download command</option>
+          <option value="video-squared">Video (squared) download command</option>
+          <option value="video-portrait">Video (portrait) download command</option>
+          <option value="audio">Audio download command</option>
+        </select>
 
         <button class="fb-100 mb-1" id="copyCommand">Copy selected command</button>
 
@@ -419,11 +419,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   const videoStream = document.querySelector(".video-stream");
   if (videoStream) {
-  if (videoStream.paused) {
-    updateMediaControlLabel(mediaState.play);
-  } else {
-    updateMediaControlLabel(mediaState.pause);
-  }
+    if (videoStream.paused) {
+      updateMediaControlLabel(mediaState.play);
+    } else {
+      updateMediaControlLabel(mediaState.pause);
+    }
   }
 
   e.querySelector("#mediaControlTrigger").addEventListener('click', () => {
@@ -500,9 +500,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
       terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
 
-    // add offset only if there is offset applied to the interval
-    if (startSeconds > offsetStartSeconds) {
-      terminalCommand += ` -ss ${offset}`;
+      // add offset only if there is offset applied to the interval
+      if (startSeconds > offsetStartSeconds) {
+        terminalCommand += ` -ss ${offset}`;
       }
     } catch(e) {
       return;
