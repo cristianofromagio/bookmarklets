@@ -1,6 +1,6 @@
 /**
  * refs:
- * 	- https://htmlpreview.github.io/?
+ * 	- https://htmlpreview.github.io
  *
  * limitations:
  *  - requires dialog element support
@@ -20,8 +20,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   let previewLink = '';
 
   // TODO: limit to run only on github domain and .html files
-  // const filenamesWhitelist = ['.html', '.htm'];
-  // if (filenamesWhitelist.includes(location.protocol))
   previewLink = document.location.href;
 
   let e = document.createElement("dialog");
@@ -147,14 +145,14 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   document.body.append(e);
 
-  e.querySelector("#search-form").addEventListener('submit', function (ev) {
+  e.querySelector("#dialog-form").addEventListener('submit', function (ev) {
     ev.preventDefault();
     // get input field value with provided url
-    const searchUrl = ev.target[0].value;
+    const dialogUrl = ev.target[0].value;
 
     // window.open relies on user browser settings,
     //  but should work most of the times to open a link in a new tab
-    window.open('https://htmlpreview.github.io/?' + searchUrl.replace(/\/$/, ''), '_blank', 'noopener,noreferrer');
+    window.open('https://htmlpreview.github.io/?' + dialogUrl.replace(/\/$/, ''), '_blank', 'noopener,noreferrer');
     removeItself();
   });
 
