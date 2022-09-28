@@ -14,7 +14,9 @@ jobs:
     steps:
       # checkout main
       - uses: actions/checkout@v3
-      # checkout gh-pages?
+        with:
+          ref: main
+      # checkout gh-pages
       - uses: actions/checkout@v3
         with:
           ref: gh-pages
