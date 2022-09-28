@@ -449,6 +449,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         <input type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
         ]
       </span>
+      <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.nukeElement(this.parentNode)"><span></span></button>
     `;
     // entry.onclick = () => { callSeek(seconds) };
     e.querySelector("#list").appendChild(entry);
@@ -465,10 +466,20 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   e.querySelectorAll('.time-control').forEach(item => {
     item.addEventListener('click', event => {
+      let errMsg = 'No video detected';
       try {
-        timeTravel(event.target.dataset.amount);
+        let amount = event.target.dataset.amount;
+        if (amount === "x") {
+          amount = document.querySelector("#custom-time-control-amount").value.trim();
+        }
+        if (isNaN(amount)) {
+          errMsg = 'Invalid time amount';
+          document.querySelector("#custom-time-control-amount").value = '';
+          throw 'NaN';
+        }
+        timeTravel(amount);
       } catch (e) {
-        displayError('No video detected');
+        displayError(errMsg);
       }
     });
   });
