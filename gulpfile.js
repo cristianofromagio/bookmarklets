@@ -55,13 +55,8 @@ function newScript(cb) {
     .option('type', {
       alias: 't',
       describe: 'choose new script type',
-      choices: ['basic', 'togglable', 'miniapp'],
+      choices: ['basic', 'togglable', 'miniapp', 'dialog'],
       default: 'basic'
-    })
-    .option('title', {
-      alias: 'mt',
-      describe: 'choose miniapp title',
-      default: ''
     })
     .demandOption(['name', 'type'], 'Please provide a name and a valid type')
     .fail(function (msg, err, yargs) {
@@ -79,8 +74,7 @@ function newScript(cb) {
     .pipe(twing(
       twingEnv,
       {
-        scriptName: args.name,
-        miniappTitle: args.title
+        scriptName: args.name
       },
       { outputExt: '' }
     ))
