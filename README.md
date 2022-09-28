@@ -1,6 +1,6 @@
 # Bookmarklets
 
-This is a collection of bookmarklets I've used for web development.
+This is a collection of bookmarklets I've created to help with web development and having fun.
 
 ## Usage
 
@@ -10,11 +10,10 @@ This is a collection of bookmarklets I've used for web development.
 
 ## Steps to publish
 
-- Commit on `main`
-- `git checkout gh-pages`
-- `git merge main`
-- `npx gulp publish`
-	+ create `index.html` with all scripts from `/src/` then move it to `/docs/`
-- Commit changes on `gh-pages`
-- `git push origin gh-pages`
-	+ new online version will soon be updated, after `gh-actions` runs
+Automatically runs GitHub Action on `main` branch pushes if any `src/**.js` is included in the commit. It runs `npx gulp publish` command then publish the generated `dist` folder to `gh-pages` branch.
+
+## What can be improved
+
+- [ ] Document each script usage
+- [ ] Start versioning scripts
+- [ ] Transform scripts into both a single netscape-bookmark html file and each one into a compatible user-script (monkeyscript, tampermonkey, etc)
