@@ -12,6 +12,7 @@ const removeItself = () => {
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
   e = null;
+  window.blockFn = undefined;
 };
 
 const displayError = (msg) => {
@@ -34,36 +35,109 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  let e = document.createElement("div");
+  window.blockFn = {};
+  window.blockFn.removeItself = removeItself;
+
+  let e = document.createElement("details");
   e.id = BLOCK_NAME;
-  e.style.display = "block";
-  e.style.padding = "10px 15px";
-  e.style.fontFamily = "sans-serif";
-  e.style.position = "fixed";
-  e.style.fontSize = ".985rem";
-  e.style.zIndex = "9999";
-  e.style.right = "0px";
-  e.style.top = "0px";
-  e.style.borderBottomLeftRadius = "5px";
-  e.style.backgroundColor = "rgba(27, 32, 50, .9)";
-  e.style.margin = "0px";
-  e.style.color = "white";
-  e.style.textAlign = "center";
+  e.setAttribute("open", "");
 
   e.innerHTML = `
 
-    <!-- insert miniapp element styles + content here -->
+    <!-- insert miniapp styles + content here -->
 
     <style>
-      #${BLOCK_NAME} h1 {
-        margin: .5rem 0;
+    	#${BLOCK_NAME} {
+      	background-color: rgba(27, 32, 50, .9);
+        border-radius: 5px;
+        border: 3px solid #4d646f;
+        color: white;
+        display: block;
+        font-family: sans-serif;
+        font-size: 16px;
+        margin: auto;
+        padding: 0;
+        position: fixed;
+        right: 0;
+        text-align: center;
+        top: 0;
+        width: 280px;
+        z-index: 9999;
+      }
+      #${BLOCK_NAME} > summary {
+        background-color: #607D8B;
+        color: #fff;
+        cursor: pointer;
+        font-size: .75em;
+        padding: .5em .75em;
+        text-align: left;
+        user-select: none;
+        margin: 0;
+      }
+      /* required to overwrite default website font-family */
+      #${BLOCK_NAME} * {
+        font-family: sans-serif;
+        box-sizing: border-box;
       }
       #${BLOCK_NAME} button {
-        line-height: 1.2em;
+        background-clip: padding-box;
+        background-color: #607D8B;
+        border-radius: 3px;
+        border: none;
+        box-shadow: inset 0 -4px rgba(0,0,0,0.2);
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        font-size: .75em;
+        font-weight: 600;
+        line-height: 30px;
+        margin: .25em;
+        overflow: hidden;
+        padding: 0 1.5em;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+      #${BLOCK_NAME} input,
+      #${BLOCK_NAME} textarea {
+        color: #262626;
+        font-size: 16px;
+        line-height: 20px;
+        min-height: 28px;
+        border-radius: 4px;
+        padding: 8px;
+        border: 2px solid transparent;
+        box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
+        background: rgb(251, 251, 251);
+        transition: all 0.1s ease 0s;
+        margin: 0;
+        box-sizing: border-box;
+        width: 100%;
+        font-family: monospace;
+        font-weight: bold;
+      }
+      #${BLOCK_NAME} select {
+        cursor: pointer;
+        font-size: 16px;
+        margin: 8px .25em 0;
+        padding: 8px 6px;
+        outline: 2px solid #607D8B;
+        box-sizing: border-box;
+        border-radius: 3px;
+        color: #262626;
+        -webkit-appearance: none;
+        box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
+        background: #FBFBFB url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" height="63" width="117" fill="black"><path d="M115 2c-1-2-4-2-5 0L59 53 7 2a4 4 0 00-5 5l54 54 2 2 3-2 54-54c2-1 2-4 0-5z"/></svg>') calc(100% - 12px) 50%/12px no-repeat;
+      }
+      #${BLOCK_NAME} input:focus {
+        border: 2px solid #607D8B;
       }
       #${BLOCK_NAME} #alert {
         position: absolute;
-        bottom: -2rem;
+        bottom: -.75rem;
         left: 50%;
         transform: translateX(-50%);
         padding: .25rem .75rem;
@@ -72,22 +146,100 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         border: 1px solid #f1f1f1;
         border-radius: 5px;
         display: none;
+        font-size: .75rem;
+      }
+      #${BLOCK_NAME} p {
+        margin: 4px 0 2px;
+        text-align: left;
+      }
+      #${BLOCK_NAME} hr {
+        padding: 0;
+        margin: 8px 0;
+        border: revert;
+      }
+      #${BLOCK_NAME}-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      #${BLOCK_NAME} .move-handler {
+      	float: right;
+        font-weight: bolder;
+        padding: .125rem .5rem;
+        margin-top: -.125rem;
+        background-color: rgba(0,0,0,.1);
+        border-radius: 3px;
+        cursor: move;
       }
     </style>
 
+    <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
+
     <span id="alert"></span>
 
-    <h1>{{ miniappTitle }}</h1>
-  `;
+    <div style="padding: 8px">
 
-  let close = document.createElement("button");
-  close.onclick = () => { removeItself() };
-  close.style.marginBottom = "1rem";
-  close.innerHTML = "Close";
-  e.append(close);
+      <!-- insert miniapp content here -->
+
+      <hr class="mb-1">
+
+      <div id="${BLOCK_NAME}-action-buttons">
+        <button id="vanishButtonTrigger">Vanish</button>
+        <button id="purgeButtonTrigger">Purge</button>
+        <button id="undoButtonTrigger">Undo</button>
+
+        <button
+          onclick="blockFn.removeItself()"
+          style="flex-basis: 100%">Close</button>
+      </div>
+    </div>
+  `;
 
   document.body.append(e);
 
+
+  //
   // insert miniapp code here
+  //
+
+
+  let offset = [0, 0];
+  let moveTriggered = false;
+
+  const moveHandler = document.getElementById('moveHandler');
+
+  moveHandler.addEventListener('mousedown', (ev) => {
+    moveTriggered = true;
+    ev.preventDefault();
+
+    const { top, left } = e.getBoundingClientRect();
+
+    offset = [
+      left - ev.clientX,
+      top - ev.clientY
+    ];
+  }, true);
+
+  moveHandler.addEventListener('mouseup', () => {
+    moveTriggered = false;
+  }, true);
+
+  // this is useful if moveHandler is not small,
+  //  otherwise, it falls behind the positioning style update and breaks out of moving
+  moveHandler.addEventListener('mouseleave', () => {
+    moveTriggered = false;
+  }, true);
+
+  moveHandler.addEventListener('mousemove', (ev) => {
+    if (!moveTriggered) return;
+    ev.preventDefault();
+
+    // set right to default value, needed for calculations
+    // (otherwise element stretch from 0-right to the new position)
+    e.style.right = 'auto';
+
+    e.style.left = Number(ev.clientX + offset[0]) + 'px';
+    e.style.top  = Number(ev.clientY + offset[1]) + 'px';
+  }, true);
 
 }
