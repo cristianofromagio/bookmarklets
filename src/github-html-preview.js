@@ -134,7 +134,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     </span>
 
     <div style="padding: 16px">
-      <form id="search-form" style="margin:0;padding:0">
+      <form id="dialog-form" style="margin:0;padding:0">
         <input type="text" id="preview-link" value="${previewLink}"/>
         <button type="submit">
           <span>preview html file</span>
