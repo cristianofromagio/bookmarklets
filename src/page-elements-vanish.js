@@ -10,6 +10,8 @@
  *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLDetailsElement/toggle_event
  *  - (why we cant run a "paste button" from bookmarklet)
  *    - https://daily-dev-tips.com/posts/javascript-paste-text-from-the-clipboard/
+ *  - https://stackoverflow.com/a/45831670
+ *  - https://www.discoverdev.io/blog/series/js30/27-click-drag/
  */
 
 const BLOCK_NAME = "page-elements-vanish";
@@ -53,37 +55,38 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  let e = document.createElement("div");
+  let e = document.createElement("details");
+  e.removeItself = removeItself;
   e.id = BLOCK_NAME;
-  e.style.backgroundColor = "rgba(27, 32, 50, .9)";
-  e.style.borderRadius = "5px";
-  e.style.border = "3px solid #4d646f";
-  e.style.color = "white";
-  e.style.display = "block";
-  e.style.fontFamily = "sans-serif";
-  e.style.fontSize = "16px";
-  e.style.margin = "auto";
-  e.style.padding = "0";
-  e.style.position = "fixed";
-  e.style.right = "0px";
-  e.style.textAlign = "center";
-  e.style.top = "0px";
-  e.style.zIndex = "9999";
-
+  e.setAttribute("open", "");
   e.innerHTML = `
-
-    <!-- insert miniapp element styles + content here -->
-
     <style>
-
-      #${BLOCK_NAME}:before {
+    	#${BLOCK_NAME} {
+      	background-color: rgba(27, 32, 50, .9);
+        border-radius: 5px;
+        border: 3px solid #4d646f;
+        color: white;
         display: block;
-        padding: .25em .75em;
+        font-family: sans-serif;
+        font-size: 16px;
+        margin: auto;
+        padding: 0;
+        position: fixed;
+        right: 0;
+        text-align: center;
+        top: 0;
+        width: 280px;
+        z-index: 9999;
+      }
+      #${BLOCK_NAME} > summary {
         background-color: #607D8B;
-        text-align: left;
         color: #fff;
-        content: "${BLOCK_NAME}";
+        cursor: pointer;
         font-size: .75em;
+        padding: .5em .75em;
+        text-align: left;
+        user-select: none;
+        margin: 0;
       }
       /* required to overwrite default website font-family */
       #${BLOCK_NAME} * {
@@ -153,6 +156,21 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} hr {
         padding: 0;
         margin: 8px 0;
+        border: revert;
+      }
+      #${BLOCK_NAME}-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      #${BLOCK_NAME} .move-handler {
+      	float: right;
+        font-weight: bolder;
+        padding: .125rem .5rem;
+        margin-top: -.125rem;
+        background-color: rgba(0,0,0,.1);
+        border-radius: 3px;
+        cursor: move;
       }
 
 
@@ -166,9 +184,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
     </style>
 
+    <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
+
     <span id="alert"></span>
 
-    <div style="padding:8px 8px 0">
+    <div style="padding: 8px">
       <p>Selector for vanishing elements:</p>
       <input spellcheck="false" class="${BLOCK_NAME}-config-sync mb-1" data-config-name="elementsSelector" id="vanishingElementsSelector"/>
 
@@ -187,18 +207,20 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         <textarea spellcheck="false" rows="4" id="${BLOCK_NAME}-config"></textarea>
         <button class="d-full" id="${BLOCK_NAME}-config-copy">copy</button>
       </details>
+
       <hr class="mb-1">
 
-      <button id="vanishButtonTrigger">Vanish</button>
-      <button id="undoButtonTrigger">Undo</button>
+      <div id="${BLOCK_NAME}-action-buttons">
+        <button id="vanishButtonTrigger">Vanish</button>
+        <button id="undoButtonTrigger">Undo</button>
+
+        <button
+          onclick="getElementById('${BLOCK_NAME}').removeItself()"
+          style="flex-basis: 100%">Close</button>
+      </div>
+
     </div>
   `;
-
-  let close = document.createElement("button");
-  close.onclick = () => { removeItself() };
-  close.style.marginBottom = "1rem";
-  close.innerHTML = "Close";
-  e.append(close);
 
   document.body.append(e);
 
@@ -356,4 +378,43 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       console.log(err);
     }
   }
+
+  let offset = [0, 0];
+  let moveTriggered = false;
+
+  const moveHandler = document.getElementById('moveHandler');
+
+  moveHandler.addEventListener('mousedown', (ev) => {
+    moveTriggered = true;
+    ev.preventDefault();
+
+    const { top, left } = e.getBoundingClientRect();
+
+    offset = [
+      left - ev.clientX,
+      top - ev.clientY
+    ];
+  }, true);
+
+  moveHandler.addEventListener('mouseup', () => {
+    moveTriggered = false;
+  }, true);
+
+  // this is useful if moveHandler is not small,
+  //  otherwise, it falls behind the positioning style update and breaks out of moving
+  moveHandler.addEventListener('mouseleave', () => {
+    moveTriggered = false;
+  }, true);
+
+  moveHandler.addEventListener('mousemove', (ev) => {
+    if (!moveTriggered) return;
+    ev.preventDefault();
+
+    // set right to default value, needed for calculations
+    // (otherwise element stretch from 0-right to the new position)
+    e.style.right = 'auto';
+
+    e.style.left = Number(ev.clientX + offset[0]) + 'px';
+    e.style.top  = Number(ev.clientY + offset[1]) + 'px';
+  }, true);
 }
