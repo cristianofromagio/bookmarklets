@@ -212,6 +212,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
       <div id="${BLOCK_NAME}-action-buttons">
         <button id="vanishButtonTrigger">Vanish</button>
+        <button id="purgeButtonTrigger">Purge</button>
         <button id="undoButtonTrigger">Undo</button>
 
         <button
@@ -232,6 +233,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         visibility: hidden;
         opacity: 0;
         height: 0;
+      }
+      .${BLOCK_NAME}-vanished-element--purged {
+        display: none !important;
       }
     `;
     document.head.append(vanishStylesheet);
@@ -322,8 +326,23 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   e.querySelector("#undoButtonTrigger").addEventListener('click', () => {
     document.querySelectorAll(`.${BLOCK_NAME}-vanished-element`).forEach((el) => {
+      el.classList.remove(`${BLOCK_NAME}-vanished-element--purged`);
       el.classList.remove(`${BLOCK_NAME}-vanished-element`);
     });
+  });
+
+  e.querySelector("#purgeButtonTrigger").addEventListener('click', () => {
+    let vanishClass = `${BLOCK_NAME}-vanished-element`;
+    let vanishedEls = document.querySelectorAll('.'+vanishClass);
+    if (vanishedEls && vanishedEls.length > 0) {
+      vanishedEls.forEach((el) => {
+        if(!el.classList.contains(`${vanishClass}--purged`)) {
+          el.classList.add(`${vanishClass}--purged`);
+        }
+      });
+    } else {
+      alert(`[${BLOCK_NAME}]: Vanish first then purge`);
+    }
   });
 
   e.querySelectorAll(`.${BLOCK_NAME}-config-sync`).forEach((el) => {
