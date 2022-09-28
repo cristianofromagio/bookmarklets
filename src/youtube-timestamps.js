@@ -124,17 +124,20 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
   window.blockFn.callSeek = callSeek;
 
-  function saveVideoScreenshot(timestamp) {
+  function saveVideoScreenshot(timestamps) {
+    const { seconds, isoFormatted } = timestamps;
     const { videoId } = getVideoInfo();
     // timestamp is iniatialy formatted as "hh:mm:ss.mm", then formatted to "hhmmss"
-    const filenameSafeTimestamp = timestamp.split('.')[0].replace(/:/g,"");
+    const filenameSafeTimestamp = isoFormatted.split('.')[0].replace(/:/g,"");
 
-    // workaround to give time to seek/time-travel when clicked on a timestamp (bubble from entry click)
+    callSeek(seconds);
+
+    // workaround to give time to seek/time-travel
     setTimeout(() => {
       let videoEl = document.querySelector(".video-stream");
       let canvasEl = document.createElement("canvas");
-      canvasEl.width = 1280;
-      canvasEl.height = 720;
+      canvasEl.width = videoEl.videoWidth;
+      canvasEl.height = videoEl.videoHeight;
 
       if (!videoEl.paused) {
         videoEl.pause();
@@ -145,12 +148,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
       let anchorEl = document.createElement("a");
       anchorEl.href = canvasEl.toDataURL();
-      anchorEl.download = `${videoId} - ${filenameSafeTimestamp}.png`;
+      anchorEl.download = `${videoId} - ${filenameSafeTimestamp} - ${videoEl.videoWidth}x${videoEl.videoHeight}.png`;
       anchorEl.click();
 
-      canvasEl = null;
-      anchorEl = null;
-    }, 300);
+      nukeElement(canvasEl);
+      nukeElement(anchorEl);
+    }, 150);
   }
 
   function timeTravel(amount) {
