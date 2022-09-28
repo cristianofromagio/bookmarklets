@@ -1,6 +1,6 @@
 /**
  * refs:
- * 	- https://htmlpreview.github.io/
+ * 	- https://htmlpreview.github.io
  *
  * limitations:
  *  - requires dialog element support
