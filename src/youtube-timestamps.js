@@ -80,7 +80,10 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   function getTimestamps() {
     let video = document.querySelector(".video-stream");
     let currentSeconds = video.currentTime;
-    return [currentSeconds, fromSecondsToISO(currentSeconds)];
+    return {
+      seconds: currentSeconds,
+      isoFormatted: fromSecondsToISO(currentSeconds)
+    };
   }
 
   function getDownloadInterval(blockElement) {
@@ -430,22 +433,29 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   });
 
   e.querySelector("#createTimestampTrigger").addEventListener('click', () => {
-    var display = getTimestamps();
+    let { seconds, isoFormatted } = getTimestamps();
 
-    var entry = document.createElement('li');
+    let entry = document.createElement('li');
     entry.innerHTML = `
-      [<input type="radio" name="start" value="${display[1]}" data-seconds="${display[0]}">
-      <span> ${display[0]} - ${display[1]}</span>
-      <input type="radio" name="end" value="${display[1]}" data-seconds="${display[0]}">]
+      <span onclick="blockFn.callSeek(${seconds})">
+        [
+        <input type="radio" name="start" value="${isoFormatted}" data-seconds="${seconds}">
+        <span title="${seconds}">${isoFormatted}</span>
+        <input type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
+        ]
+      </span>
     `;
-    entry.onclick = () => { callSeek(display[0]) };
+    // entry.onclick = () => { callSeek(seconds) };
     e.querySelector("#list").appendChild(entry);
 
-    var screenshot = document.createElement('button');
-    screenshot.title = `Save screenshot at ${display[1]}`;
-    screenshot.innerHTML = "📸";
-    screenshot.onclick = () => { saveVideoScreenshot(display[1]) };
-    entry.appendChild(screenshot);
+    let scrn = document.createElement('button');
+    scrn.className = "timestamp-screenshot";
+    // scrn.style.backgroundColor = "#61688C";
+    scrn.style.backgroundColor = "#618C85";
+    scrn.title = `Save screenshot at ${isoFormatted}`;
+    scrn.innerHTML = "<span></span>";
+    scrn.onclick = () => { saveVideoScreenshot({ seconds, isoFormatted }) };
+    entry.appendChild(scrn);
   });
 
   e.querySelectorAll('.time-control').forEach(item => {
