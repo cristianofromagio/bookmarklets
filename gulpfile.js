@@ -138,15 +138,12 @@ function listen() {
   watch(['./src/**/*'], { events: ['change'] }, build);
 }
 
-function publish() {
-  return src('dist/**/*')
-    .pipe(dest('docs'));
-}
-
 const devTasks = series(appendBrowserSyncTag, build, parallel(serve, listen));
 
-exports.new = newScript;
-exports.build = build;
-exports.publish = series(ignoreUnfinishedScripts, build, publish);
-exports.dev = devTasks;
-exports.default = devTasks;
+module.exports = {
+  new: newScript,
+  build: build,
+  publish: series(ignoreUnfinishedScripts, build),
+  dev: devTasks,
+  default: devTasks,
+}
