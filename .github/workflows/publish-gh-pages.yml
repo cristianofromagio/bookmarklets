@@ -12,7 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      # checkout main
+      - uses: actions/checkout@v3
+      # checkout gh-pages?
+      - uses: actions/checkout@v3
+        with:
+          ref: gh-pages
       - uses: actions/setup-node@v1
         with:
           node-version: 16
