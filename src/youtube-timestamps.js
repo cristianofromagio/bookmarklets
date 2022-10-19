@@ -23,6 +23,8 @@
 const BLOCK_NAME = "youtube-timestamps";
 
 const removeItself = () => {
+  window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay"));
+
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
   e = null;
@@ -66,7 +68,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   window.blockFn.removeItself = removeItself;
 
   function nukeElement(el) {
-    el.parentNode.removeChild(el);
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
     el = null;
   }
   window.blockFn.nukeElement = nukeElement;
