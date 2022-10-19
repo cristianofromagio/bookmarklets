@@ -382,11 +382,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .mb-1 {
         margin-bottom: .5rem;
       }
-      #${BLOCK_NAME} #list {
+      #${BLOCK_NAME} #timestamp-list {
         font-size: 1.25rem;
         list-style: none;
+        margin: 0;
       }
-      #${BLOCK_NAME} #list li {
+      #${BLOCK_NAME} #timestamp-list li {
         cursor: pointer;
         padding-bottom: .25em;
         transition: all .3s ease;
@@ -448,9 +449,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     <div style="padding: 8px">
 
-      <div id="list-container">
-        <ul id="list"></ul>
-      </div>
+      <ul id="timestamp-list"></ul>
 
       <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
         <button id="createTimestampTrigger">Snapshot timestamp</button>
@@ -543,7 +542,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.nukeElement(this.parentNode)"><span></span></button>
     `;
     // entry.onclick = () => { callSeek(seconds) };
-    e.querySelector("#list").appendChild(entry);
+    e.querySelector("#timestamp-list").appendChild(entry);
 
     let scrn = document.createElement('button');
     scrn.className = "timestamp-screenshot";
