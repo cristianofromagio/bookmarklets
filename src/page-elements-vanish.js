@@ -88,6 +88,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         user-select: none;
         margin: 0;
       }
+      #${BLOCK_NAME} summary {
+        display: list-item; /* this is the default; 'block' removes the arrow */
+      }
       /* required to overwrite default website font-family */
       #${BLOCK_NAME} * {
         font-family: sans-serif;

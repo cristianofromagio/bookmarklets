@@ -204,6 +204,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         user-select: none;
         margin: 0;
       }
+      #${BLOCK_NAME} summary {
+        display: list-item;
+      }
       /* required to overwrite default website font-family */
       #${BLOCK_NAME} * {
         font-family: sans-serif;
