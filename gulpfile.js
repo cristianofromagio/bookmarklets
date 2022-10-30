@@ -8,6 +8,7 @@
  */
 
 const
+  fs = require('fs'),
   { src, dest, watch, series, parallel } = require('gulp'),
   merge = require('merge-stream'),
   concat = require('gulp-concat'),
@@ -19,6 +20,7 @@ const
   twing = require('gulp-twing'),
   { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing'),
   twingEnv = new TwingEnvironment(new TwingLoaderRelativeFilesystem()),
+  cheerio = require('cheerio'),
 
   yargs = require('yargs/yargs'),
   { hideBin } = require('yargs/helpers'),
@@ -45,6 +47,20 @@ function ignoreUnfinishedScripts(cb) {
   IGNORE_UNFINISHED_SCRIPTS = true;
   cb();
 }
+
+function transformInputStringIntoArray(args) {
+  // if args is passed without values
+  if (!args || typeof args === 'boolean') return [];
+
+  let str = args.toString().trim();
+  if (str.substring(str.length, str.length - 1) === ',') {
+    str = str.slice(0, -1);
+  }
+  return str.split(',');
+}
+
+const scriptsArg = argv.logs;
+let logScriptsArr = transformInputStringIntoArray(scriptsArg);
 
 function newScript(cb) {
 
@@ -105,6 +121,16 @@ function build() {
       .replaceAll("<!-- @twing-start", "")  // html
       .replaceAll("@twing-end -->", "");    // html
   }
+
+  function logScripts(content) {
+    logScriptsArr.forEach((scriptName) => {
+      if (content.indexOf(scriptName) > 0) {
+        console.log(scriptName + ' content:');
+        console.log(content);
+      }
+    });
+  }
+
   let scriptsGlob = ['src/*.js'];
 
   if (IGNORE_UNFINISHED_SCRIPTS) {
@@ -118,6 +144,7 @@ function build() {
       { outputExt: '' }
     ))
     .pipe(change(removeTwingPlaceholders))
+    .pipe(change(logScripts))
     .pipe(bookmarklet({
       format: 'htmlsingle',
       file: 'bookmarks.html'
@@ -136,6 +163,48 @@ function build() {
     .pipe(dest('dist'));
 }
 
+function displayBookmarkletsLength(cb) {
+
+  /**
+   * Chrome appears to use a file-based solution to store bookmarks, so it might be limited by storage size
+   * Firefox appears to use SQLite database to store bookmarks therefore is limited by its maximum page size
+   *  - https://support.mozilla.org/en-US/questions/1259005#answer-1221738
+   *    + "I think that the maximum for a bookmarklet is a few tens of bytes below 64KB
+   *        (around 65500 bytes; I have one over 64000) (...) I gave it another test and can get to *65536*."
+   *    + Note: 65536 bytes equals 65536 characters (1:1)
+   *  - https://www.sqlite.org/limits.html
+   *    + "Every database consists of one or more "pages". Within a single database, every page is the same size,
+   *        but different databases can have page sizes that are powers of two between 512 and *65536*, inclusive.
+   *        The maximum size of a database file is 4294967294 pages."
+   */
+
+  const scripts = [];
+  const indexContent = fs.readFileSync('./dist/index.html', { encoding:'utf8', flag:'r' });
+  const $ = cheerio.load(indexContent);
+  const pageLinks = $('a');
+  pageLinks.each(function (index, el) {
+    const len = $(el).attr('href').length;
+
+    let status = '';
+    if (len > 65536) {
+      status = 'error';
+    } else if (len > 50000) {
+      status = 'warning';
+    } else {
+      status = 'safe';
+    }
+
+    let scriptData = {
+      'name': $(el).text(),
+      'length': len,
+      'status': status
+    };
+    scripts.push(scriptData);
+  });
+  console.table(scripts);
+  cb();
+}
+
 function reload(cb) {
   browserSync.reload();
   cb();
@@ -152,16 +221,19 @@ function serve() {
   watch(['./dist/**/*'], { events: ['change'] }, reload);
 }
 
+const buildAndLog = series(build, displayBookmarkletsLength);
+
 function listen() {
   watch(['./src/**/*'], { events: ['change'] }, build);
 }
 
-const devTasks = series(appendBrowserSyncTag, build, parallel(serve, listen));
+const devTasks = series(appendBrowserSyncTag, buildAndLog, parallel(serve, listen));
 
 module.exports = {
   new: newScript,
   build: build,
   publish: series(ignoreUnfinishedScripts, build),
   dev: devTasks,
+  log: displayBookmarkletsLength,
   default: devTasks,
 }

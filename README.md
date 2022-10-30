@@ -7,6 +7,8 @@ This is a collection of bookmarklets I've created to help with web development a
 - `npm install`
 - `gulp` or `gulp dev`
 - `npx gulp` or `npx gulp dev` (to run without globally installed `gulp-cli`)
+  + `npx gulp dev --logs script-file-name` will `console.log` script file contents right before compiling it into the final `html` file.
+  + `npx gulp dev --logs script-file-name1,script-file-name2`
 
 ## Steps to publish
 
