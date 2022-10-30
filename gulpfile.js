@@ -3,6 +3,8 @@
  *  - https://stackoverflow.com/a/36592176 (merge stream)
  *  - https://stackoverflow.com/a/40572663 (browser-sync not reloading)
  *  - https://nightlycommit.github.io/twing/templates.html
+ *  - https://stackoverflow.com/questions/67641687/cannot-disable-cache-in-twing-template-engine-node-js-express-js
+ *  - https://nightlycommit.github.io/twing/language-reference/tags/include.html
  */
 
 const
@@ -12,6 +14,7 @@ const
   order = require('gulp-order'),
   rename = require('gulp-rename'),
   bookmarklet = require('gulp-bookmarklet'),
+  change = require('gulp-change'),
 
   twing = require('gulp-twing'),
   { TwingEnvironment, TwingLoaderRelativeFilesystem } = require('twing'),
@@ -87,6 +90,21 @@ function newScript(cb) {
 
 
 function build() {
+  // needed to bypass twing caching mechanism,
+  //  otherwise would not reflect changes while watching files changes
+  const twingEnv = new TwingEnvironment(new TwingLoaderRelativeFilesystem());
+
+  // this provides us a way to use twing templating "tags"
+  //  while still using js/css/html syntax highlight from the editor
+  function removeTwingPlaceholders(content) {
+    return content
+      .replaceAll("// @twing ", "")         // js
+      .replaceAll("// @twing-include ", "") // js
+      .replaceAll("/* @twing-start", "")    // js/css
+      .replaceAll("@twing-end */", "")      // js/css
+      .replaceAll("<!-- @twing-start", "")  // html
+      .replaceAll("@twing-end -->", "");    // html
+  }
   let scriptsGlob = ['src/*.js'];
 
   if (IGNORE_UNFINISHED_SCRIPTS) {
@@ -94,6 +112,12 @@ function build() {
   }
 
   let bookmarks = src(scriptsGlob)
+    .pipe(twing(
+      twingEnv,
+      {},
+      { outputExt: '' }
+    ))
+    .pipe(change(removeTwingPlaceholders))
     .pipe(bookmarklet({
       format: 'htmlsingle',
       file: 'bookmarks.html'

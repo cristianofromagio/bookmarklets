@@ -18,8 +18,10 @@
   "homepage": "https://github.com/cristianofromagio/bookmarklets#readme",
   "devDependencies": {
     "browser-sync": "^2.27.9",
+    "cheerio": "^1.0.0-rc.12",
     "gulp": "^4.0.2",
-    "gulp-bookmarklet": "github:desholmes/gulp-bookmarklet#feature/remove-gulp-util-dep",
+    "gulp-bookmarklet": "github:Skylark95/gulp-bookmarklet#master",
+    "gulp-change": "^1.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-order": "^1.2.0",
     "gulp-rename": "^2.0.0",
