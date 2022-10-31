@@ -5,6 +5,8 @@
  *  - https://nightlycommit.github.io/twing/templates.html
  *  - https://stackoverflow.com/questions/67641687/cannot-disable-cache-in-twing-template-engine-node-js-express-js
  *  - https://nightlycommit.github.io/twing/language-reference/tags/include.html
+ *  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+ *  - https://www.tutorialspoint.com/http/http_url_encoding.htm
  */
 
 const
@@ -165,6 +167,13 @@ function build() {
 
 function displayBookmarkletsLength(cb) {
 
+  function fixedEncodeURIComponent(str) {
+    return encodeURIComponent(str).replace(
+      /[!'()*]/g,
+      (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+    );
+  }
+
   /**
    * Chrome appears to use a file-based solution to store bookmarks, so it might be limited by storage size
    * Firefox appears to use SQLite database to store bookmarks therefore is limited by its maximum page size
@@ -183,7 +192,8 @@ function displayBookmarkletsLength(cb) {
   const $ = cheerio.load(indexContent);
   const pageLinks = $('a');
   pageLinks.each(function (index, el) {
-    const len = $(el).attr('href').length;
+    const scriptString = $(el).attr('href');
+    const len = fixedEncodeURIComponent(scriptString).length;
 
     let status = '';
     if (len > 65536) {
@@ -196,7 +206,8 @@ function displayBookmarkletsLength(cb) {
 
     let scriptData = {
       'name': $(el).text(),
-      'length': len,
+      'length': scriptString.length,
+      'length (encoded)': len,
       'status': status
     };
     scripts.push(scriptData);
