@@ -465,7 +465,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         <button class="time-control" data-amount="-.5"> -.5s </button>
 
         <div class="custom-time-control" style="flex:1">
-          <input type="text" id="custom-time-control-amount"/>
+          <input type="text" id="custom-time-control-amount" value=".1"/>
           <button class="time-control" data-amount="x">
             #
           </button>
