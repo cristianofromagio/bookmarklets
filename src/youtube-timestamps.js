@@ -487,13 +487,16 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       <div class="${BLOCK_NAME}-action-buttons">
 
         <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
-          <option value="video" selected>Video download command</option>
-          <option value="video-squared">Video (squared) download command</option>
-          <option value="video-portrait">Video (portrait) download command</option>
-          <option value="audio">Audio download command</option>
+          <option value="v" selected>Video download</option>
+          <option value="v11">Video (squared 1:1) download</option>
+          <option value="v916">Video (portrait 9:16) download</option>
+          <option value="v54">Video (5:4) download</option>
+          <option value="v43">Video (4:3) download</option>
+          <option value="v85">Video (8:5) download</option>
+          <option value="a">Audio only download</option>
         </select>
 
-        <button class="fb-100 mb-1" id="copyCommand">Copy selected command</button>
+        <button class="fb-100 mb-1" id="copyCommand">Copy selected download command</button>
 
         <button
           onclick="blockFn.removeItself()"
@@ -619,22 +622,24 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       return;
     }
 
-    switch(selectedOption) {
-      case 'video':
-        terminalCommand += ` "${videoTitle}.mp4"`;
-        break;
-      case 'video-squared':
-        terminalCommand += ` -vf "crop=in_h" "${videoTitle}.mp4"`;
-        break;
-      case 'video-portrait':
-        terminalCommand += ` -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`;
-        break;
-      case 'audio':
-        terminalCommand += ` "${videoTitle}.mp3"`;
-        break;
-      default:
-        displayError("Invalid option: can't copy command");
+    const commandOptions = {
+      'v': ` "${videoTitle}.mp4"`,
+      'v11': ` -vf "crop=in_h" "${videoTitle}.mp4"`,
+      'v916': ` -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`,
+      'v54': ` -vf "crop='5/4*in_h':in_h" "${videoTitle}.mp4"`,
+      'v43': ` -vf "crop='4/3*in_h':in_h" "${videoTitle}.mp4"`,
+      'v85': ` -vf "crop='8/5*in_h':in_h" "${videoTitle}.mp4"`,
+      'a': ` "${videoTitle}.mp3"`
+    };
+
+    const selectedCommand = commandOptions[selectedOption];
+
+    if (!selectedCommand) {
+      displayError("Invalid option: can't copy command");
+      return;
     }
+
+    terminalCommand += selectedCommand;
 
     if (terminalCommand) {
       copyToClipboard(terminalCommand);
