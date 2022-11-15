@@ -14,10 +14,12 @@
  *  - https://www.discoverdev.io/blog/series/js30/27-click-drag/
  */
 
+// @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
+
 const BLOCK_NAME = "page-elements-vanish";
 
 const removeItself = () => {
-  let e = document.querySelector("#" + BLOCK_NAME);
+  let e = $("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
   e = null;
 };
@@ -28,7 +30,7 @@ const displayError = (msg) => {
 
 let displayingTimeout;
 const displayAlert = (message) => {
-  const alert = document.querySelector("#" + BLOCK_NAME + " #alert");
+  const alert = $("#" + BLOCK_NAME + " #alert");
   alert.innerText = message;
   alert.style.display = "inline-block";
   clearTimeout(displayingTimeout);
@@ -39,7 +41,7 @@ const displayAlert = (message) => {
 }
 
 const copyToClipboard = (content) => {
-  const el = document.createElement('textarea');
+  const el = create('textarea');
   el.value = content;
   el.setAttribute('readonly', '');
   el.style.position = 'absolute';
@@ -51,11 +53,11 @@ const copyToClipboard = (content) => {
   displayAlert('Config copied!');
 };
 
-if (document.querySelector("#" + BLOCK_NAME)) {
+if ($("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  let e = document.createElement("details");
+  let e = create("details");
   e.removeItself = removeItself;
   e.id = BLOCK_NAME;
   e.setAttribute("open", "");
@@ -228,8 +230,8 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   document.body.append(e);
 
-  if (!document.querySelector(`#${BLOCK_NAME}-stylesheet`)) {
-    let vanishStylesheet = document.createElement("style");
+  if (!$(`#${BLOCK_NAME}-stylesheet`)) {
+    let vanishStylesheet = create("style");
     vanishStylesheet.id = `#${BLOCK_NAME}-stylesheet`;
     vanishStylesheet.innerHTML = `
       .${BLOCK_NAME}-vanished-element {
@@ -257,14 +259,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     let comparingValue = '';
     let parsedConfigs = '';
 
-    const configInput = e.querySelector(`#${BLOCK_NAME}-config`).value;
+    const configInput = $(`#${BLOCK_NAME}-config`, e).value;
 
     if (configInput) {
       try {
-        console.log(configInput);
         const configContent = Object.entries(JSON.parse(configInput));
         parsedConfigs = new Map(configContent);
-        console.log(parsedConfigs);
       } catch (err) {
         console.log('ERROR: couldnt parse configs');
         console.log(err);
@@ -278,9 +278,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       comparingText = parsedConfigs.get("textSelector");
       comparingValue = parsedConfigs.get("compare");
     } else {
-      selector = e.querySelector("#vanishingElementsSelector").value.trim();
-      comparingText = e.querySelector("#nestedComparingTextSelector").value.trim();
-      comparingValue = e.querySelector("#comparingValue").value.trim();
+      selector = $("#vanishingElementsSelector", e).value.trim();
+      comparingText = $("#nestedComparingTextSelector", e).value.trim();
+      comparingValue = $("#comparingValue", e).value.trim();
 
       fillConfig(e);
     }
