@@ -12,6 +12,7 @@
  *    - https://daily-dev-tips.com/posts/javascript-paste-text-from-the-clipboard/
  *  - https://stackoverflow.com/a/45831670
  *  - https://www.discoverdev.io/blog/series/js30/27-click-drag/
+ *  - https://stackoverflow.com/a/5799834
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
@@ -40,7 +41,7 @@ const displayAlert = (message) => {
   }, 3000);
 }
 
-const copyToClipboard = (content) => {
+const copyToClipboard = (content, msg = "Config copied!") => {
   const el = create('textarea');
   el.value = content;
   el.setAttribute('readonly', '');
@@ -50,7 +51,7 @@ const copyToClipboard = (content) => {
   el.select();
   document.execCommand('copy');
   document.body.removeChild(el);
-  displayAlert('Config copied!');
+  displayAlert(msg);
 };
 
 if ($("#" + BLOCK_NAME)) {
@@ -98,7 +99,8 @@ if ($("#" + BLOCK_NAME)) {
         font-family: sans-serif;
         box-sizing: border-box;
       }
-      #${BLOCK_NAME} button {
+      #${BLOCK_NAME} button,
+      #${BLOCK_NAME} .btn {
         background-clip: padding-box;
         background-color: #607D8B;
         border-radius: 3px;
@@ -220,6 +222,12 @@ if ($("#" + BLOCK_NAME)) {
         <button id="purgeButtonTrigger">Purge</button>
         <button id="undoButtonTrigger">Undo</button>
 
+        <a
+          id="copyToggleBookmarkletTrigger"
+          href=""
+          class="btn"
+          style="flex-basis: 100%; display:none">Copy bookmarklet</a>
+
         <button
           onclick="getElementById('${BLOCK_NAME}').removeItself()"
           style="flex-basis: 100%">Close</button>
@@ -283,6 +291,7 @@ if ($("#" + BLOCK_NAME)) {
       comparingValue = $("#comparingValue", e).value.trim();
 
       fillConfig(e);
+      updateCopyBookmarklet();
     }
 
     if (!selector || !comparingText || !comparingValue) {
@@ -376,6 +385,21 @@ if ($("#" + BLOCK_NAME)) {
     copyToClipboard(e.querySelector(`#${BLOCK_NAME}-config`).value);
   });
 
+  e.querySelector("#copyToggleBookmarkletTrigger").addEventListener('click', (ev) => {
+    ev.preventDefault();
+    copyToClipboard(getHeadlessBookmarklet(), 'Bookmarklet copied!');
+  });
+
+  function getHeadlessBookmarklet() {
+    const config = e.querySelector(`#${BLOCK_NAME}-config`).value;
+    const headlessBookmarklet = `
+      /* @twing-start{% set vars = { hash: '${Date.now()}', configInput: '${config}', canonicalBlockName: '${BLOCK_NAME}' } %}@twing-end */
+      // @twing-include {% include 'building_blocks/shared/partials/headless-toggle-page-elements-vanish.js' with vars %}
+    `;
+    // removes leading spaces (identation) + removes newlines
+    return headlessBookmarklet.replace(/^ +/gm, '').replace(/[\n\r]+/g, '');
+  }
+
   function fillConfig(el) {
     let selector = el.querySelector("#vanishingElementsSelector").value.trim();
     let comparingText = el.querySelector("#nestedComparingTextSelector").value.trim();
@@ -401,14 +425,13 @@ if ($("#" + BLOCK_NAME)) {
     }
   }
 
-  let offset = [0, 0];
-  let moveTriggered = false;
-
-  const moveHandler = document.getElementById('moveHandler');
-
-  moveHandler.addEventListener('mousedown', (ev) => {
-    moveTriggered = true;
-    ev.preventDefault();
+  function updateCopyBookmarklet(el) {
+    const triggerEl = $("#copyToggleBookmarkletTrigger", el);
+    fill(triggerEl, 'href', getHeadlessBookmarklet());
+    fill(triggerEl, 'title', 'Click to COPY, drag to bookmarks tab to SAVE');
+    fill(triggerEl, 'style.display', 'inline-block');
+    fill(triggerEl, 'innerHTML', 'toggleabble-bookmarklet');
+  }
 
     const { top, left } = e.getBoundingClientRect();
 
