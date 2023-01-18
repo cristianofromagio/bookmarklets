@@ -276,6 +276,7 @@ if ($("#" + BLOCK_NAME)) {
       selector = parsedConfigs.get("elementsSelector");
       comparingText = parsedConfigs.get("textSelector");
       comparingValue = parsedConfigs.get("compare");
+      updateCopyBookmarklet();
     } else {
       selector = $("#vanishingElementsSelector", e).value.trim();
       comparingText = $("#nestedComparingTextSelector", e).value.trim();
