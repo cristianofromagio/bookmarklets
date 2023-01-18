@@ -1,3 +1,6 @@
+
+const PARTIAL_UTILS = true;
+
 const
   /**
    * Returns first Element to satisfy selector.
@@ -33,14 +36,21 @@ const
    * Set values to an element property recursively.
    *
    * @param {(Element|NodeList)} e - Element or NodeList object to set values to.
-   * @param {String} p - Element property, can use nested dot notation (ie. "style.color").
-   * @param {*} v - Value to set to the element property.
+   * @param {String|Array} p - Element property, can use nested dot notation (ie. "style.color").
+   * @param {*|Array} v - Value to set to the element property.
    */
   fill = function (e, p, v) {
     if (e) {
       // returned by querySelectorAll
       if (e instanceof NodeList) {
         e.forEach((el) => fill(el, p, v));
+      }
+
+      if (Array.isArray(p) && Array.isArray(v)) {
+        if (p.length === v.length) {
+          p.forEach((_, i) => fill(e, p[i], v[i]));
+        }
+        // arrays diff length
         return;
       }
 
