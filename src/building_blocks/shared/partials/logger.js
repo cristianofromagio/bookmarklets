@@ -38,29 +38,29 @@ const logger = {
       return;
     }
     LOGGER_ELEMENT = create('details');
+    LOGGER_ELEMENT.id = 'LOGGER_UTILS';
     let summ = create('summary');
     summ.textContent = 'Activity logs:';
     LOGGER_ELEMENT.appendChild(summ);
-    fill(LOGGER_ELEMENT,
-      [
-        'style.textAlign',
-        'style.fontFamily',
-        'style.fontSize',
-        'style.maxHeight',
-        'style.padding',
-        'style.overflowY'
-      ],
-      [
-        'left',
-        'monospace',
-        '14px',
-        '250px',
-        '5px 10px',
-        'scroll'
-      ]
-    );
+
     const el = $(queryParent);
     el.appendChild(LOGGER_ELEMENT);
+
+    const styles = create('style');
+    styles.textContent = `
+      #LOGGER_UTILS {
+        text-align: left;
+        max-height: 250px;
+        width: 100%;
+        padding: 5px;
+        overflow-y: scroll;
+      }
+      #LOGGER_UTILS * {
+        font-family: monospace;
+        font-size: 12px;
+      }
+    `;
+    LOGGER_ELEMENT.insertAdjacentElement('beforebegin', styles);
   }
 };
 
