@@ -2,6 +2,12 @@
 /**
  * refs:
  *  - https://github.com/alexyorke/youtube-subscriptions-exporter
+ *  - https://kb.adamsdesk.com/application/youtube-export-subscriptions/
+ *    - use the 'Google Takeout CSV' format example to import a list of channels into LibreTube
+ *    - save a file as 'channels.txt' with only 'links' column selected, then run:
+ *        - youtube-dl --playlist-items 0 -O playlist:"%(channel_id)s,%(channel_url)s,%(channel)s" -a channels.txt > channels_csv.txt
+ *        - this wil lgive a LibreTube-compatible import format (TODO: figure out some encoding/formatting errors)
+ *        - add a line at the top with `Channel ID,Channel URL,Channel title` and save as .csv
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
@@ -357,7 +363,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
         setTimeout(() => {
           parseSubscriptionRow();
-        }, 2000);
+        }, 3500);
 
         return;
       }
