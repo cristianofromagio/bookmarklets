@@ -416,8 +416,25 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .custom-time-control button {
         margin: 0;
         line-height: 14px;
+        font-weigth: bold;
+        font-size: 15px;
+        padding: 0 6px;
+      }
+      #${BLOCK_NAME} .custom-time-control .btn-group {
+        display: flex;
+      }
+      #${BLOCK_NAME} .custom-time-control .btn-group button.btn-group-start {
         border-top-left-radius: 0;
         border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: 1px solid #262626;
+        padding-bottom: 3px;
+      }
+      #${BLOCK_NAME} .custom-time-control .btn-group button.btn-group-end {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-bottom-left-radius: 0;
+        padding-top: 2px;
       }
 
       #${BLOCK_NAME} .timestamp-delete,
@@ -466,9 +483,14 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
         <div class="custom-time-control" style="flex:1">
           <input type="text" id="custom-time-control-amount" value=".1"/>
-          <button class="time-control" data-amount="x">
-            #
-          </button>
+          <div class="btn-group">
+            <button class="btn-group-start time-control" data-amount="-x">
+              -
+            </button>
+            <button class="btn-group-end time-control" data-amount="+x">
+              +
+            </button>
+          </div>
         </div>
 
         <button class="time-control" data-amount=".5"> +.5s </button>
@@ -559,13 +581,20 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
   e.querySelectorAll('.time-control').forEach(item => {
     item.addEventListener('click', event => {
-      let errMsg = 'No video detected';
+      let errMsg = 'Invalid time amount';
       try {
         let amount = event.target.dataset.amount;
-        if (amount === "x") {
-          amount = document.querySelector("#custom-time-control-amount").value.trim();
-        }
-        if (isNaN(amount)) {
+        if (amount === "+x") {
+          amount = Number(document.querySelector("#custom-time-control-amount").value.trim());
+          if (amount < 0) {
+            amount = Number(amount * -1);
+          }
+        } else if (amount === "-x") {
+          amount = Number(document.querySelector("#custom-time-control-amount").value.trim());
+          if (amount > 0) {
+            amount = Number(amount * -1);
+          }
+        } else if (isNaN(amount)) {
           errMsg = 'Invalid time amount';
           document.querySelector("#custom-time-control-amount").value = '';
           throw 'NaN';
