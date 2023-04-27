@@ -17,13 +17,14 @@
  *  - https://stackoverflow.com/questions/3768565/drawing-an-svg-file-on-a-html5-canvas
  *  - https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
  *  - https://www.freecodecamp.org/news/how-to-center-an-absolute-positioned-element/
- *  -
+ *  - https://stackoverflow.com/a/21648197
  */
 
 const BLOCK_NAME = "youtube-timestamps";
 
 const removeItself = () => {
   window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay"));
+  window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay-vertical"));
 
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
@@ -133,42 +134,50 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
   window.blockFn.callSeek = callSeek;
 
-  function resolutionOverlaySvg(width = 1920, height = 1080, opacity = 1) {
+  function resolutionOverlaySvg(width = 1920, height = 1080, opacity = 1, id = 'svg-resolution-overlay', isVertical = false) {
+    let styleAttr = '';
+    if (!!isVertical) {
+      let { video: videoEl } = getVideoInfo();
+      // copy centering position values directly from video element style attribute
+      styleAttr += `top: ${videoEl.style.top}; left: ${videoEl.style.left}; right: auto`;
+    }
     const resolutionOverlay = `
-    <svg id="svg-resolution-overlay" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 508 285.8">
-      <g opacity="${opacity}">
-        <g color="#000" paint-order="markers stroke fill">
-          <path fill="#ff050c" d="M0 0v285.7h508V0H0zm.5.5h507v284.7H.5V.5z"/>
-          <path fill="none" d="M.3.3h507.4v285.2H.3z"/>
+      <svg id="${id}" class="svg-resolution-overlay" style="${styleAttr}" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 508 285.75">
+        <g>
+        <g opacity="${opacity}" stroke="#ff050c" stroke-width=".45" paint-order="markers stroke fill">
+          <path fill="none" d="M.27.27h507.46v285.21H.27z"/>
+          <g fill="#ff050c">
+            <path fill-opacity=".05" d="M25.66.25h456.69v285.24H25.66z"/>
+            <path fill-opacity=".1" d="M63.73.23h380.53v285.28H63.73z"/>
+            <path fill-opacity=".12" d="M75.63.23h356.74v285.3H75.63z"/>
+            <path fill-opacity=".15" d="M111.33.2h285.35v285.35H111.33z"/>
+            <path fill-opacity=".2" d="M173.72.15h160.56V285.6H173.72z"/>
+          </g>
         </g>
-        <path fill="#ff050c" d="M.3.3h25.1v15H.3z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="M7 10.8H3V9.7h1.2V6.4H3v-1h.6l.5-.1.3-.3.1-.4h1.4v5.1H7zm6.4-2.1-.1.9-.5.7q-.3.3-.8.4-.4.2-1 .2l-1-.1-.8-.5q-.4-.4-.6-1T8.4 8q0-.8.2-1.4.2-.6.6-1.1.4-.5 1-.7.7-.3 1.6-.3h.7l.4.1v1.2h-.1l-.4-.1h-.6q-.8 0-1.2.3-.5.4-.6 1.1l.7-.3.8-.1h.6l.6.3.5.7q.2.4.2 1zm-1.8 1 .2-.4v-1l-.3-.4-.3-.1H10v.5l.1.8.3.5.2.2h.7q.2 0 .3-.2zm4.8-1.9h-1.6V6h1.6zm0 3h-1.6V9h1.6zm6.4-3.5q0 .8-.2 1.5t-.7 1.1q-.4.5-1 .7-.7.3-1.6.3h-.6l-.5-.1V9.6h.2l.3.1H20q.3 0 .5-.3L21 9q.2-.3.2-.7l-.6.3-.8.1H19l-.5-.3q-.4-.3-.6-.7-.2-.4-.2-1 0-1 .7-1.6.7-.6 1.8-.6l1 .1.8.5q.4.4.6 1l.1 1.2zm-1.6-.2-.1-.8-.3-.5-.3-.2H20q-.2 0-.3.2l-.2.3v1q0 .2.2.3l.4.2h.8l.4-.1v-.4z" aria-label="16:9"/>
-        <g fill="#ff050c" color="#000" paint-order="markers stroke fill">
-          <path d="M25.4 0v285.8h457.2V0H25.4zm.5.5h456.2v284.7H25.9V.5z"/>
-          <path fill-opacity=".1" d="M25.7.3h456.6v285.2H25.7z"/>
+        ${(isVertical)
+          ?
+            `<path fill="#ff050c" d="M.27 25.27v-25h15v25zm467.08-.02v-25h15v25zm-293.63-.1v-25h15v25zm-109.99.08v-25h15v25zm353.64 0v-25h15v25zm-306.04-.03V.2h15v25z" paint-order="markers stroke fill"/>
+            <g fill="#fff" stroke-width=".25" font-family="sans-serif" font-size="10" font-weight="bold" letter-spacing="0" word-spacing="0">
+              <text x="-22.99" y="10.84" transform="rotate(-90)">9:16</text>
+              <text x="-20.99" y="74.31" transform="rotate(-90)">3:4</text>
+              <text x="-20.99" y="121.91" transform="rotate(-90)">1:1</text>
+              <text x="-23.99" y="184.29" transform="rotate(-90)">16:9</text>
+              <text x="-20.99" y="427.88" transform="rotate(-90)">4:5</text>
+              <text x="-20.99" y="477.92" transform="rotate(-90)">5:8</text>
+            </g>`
+          :
+            `<path fill="#ff050c" d="M.27.27h25.15v15.12H.27zM461.74.25h20.61v15.12h-20.61zM173.72.15h25.15v15.12h-25.15zM63.73.23h19.81v15.12H63.73zm348.83 0h19.81v15.12h-19.81zM111.33.2h19.81v15.12h-19.81z" paint-order="markers stroke fill"/>
+            <g fill="#fff" stroke-width=".25" font-family="sans-serif" font-size="10" font-weight="bold" letter-spacing="0" word-spacing="0">
+              <text x="2" y="12">16:9</text>
+              <text x="66" y="12">4:3</text>
+              <text x="113" y="12">1:1</text>
+              <text x="176" y="12">9:16</text>
+              <text x="415" y="12">5:4</text>
+              <text x="465" y="12">8:5</text>
+            </g>`
+        }
         </g>
-        <path fill="#fb0014" d="M461.7.3h20.6v15h-20.6z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="M470 9q0 .9-.7 1.4-.7.5-2 .5l-1-.1-.9-.4-.5-.6-.1-.7q0-.5.3-.8.2-.4 1-.7-.6-.2-.9-.6t-.2-.9q0-.7.6-1.2.7-.4 1.8-.4t1.8.4q.6.4.6 1.1 0 .5-.2.8l-.9.6q.7.2 1 .7t.3 1zm-1.7-2.8q0-.3-.3-.5-.2-.2-.6-.2h-.3q-.2 0-.3.2l-.2.1v.7l.5.2.3.2.5.1.3-.4v-.4zm.1 3-.1-.5-.6-.4-.4-.1-.5-.2-.3.4-.1.5q0 .4.3.7.3.2.8.2h.3l.3-.1.2-.2.1-.4zm4.5-1.5h-1.6V6.1h1.6zm0 3h-1.6V9.2h1.6zm6.4-2q0 .5-.2.9l-.5.7q-.4.3-.9.4-.5.2-1.1.2l-1.3-.1-.8-.3V9.2h.2l.8.3.8.2h.6l.5-.3.2-.3v-.7l-.3-.3-.5-.2h-1.3l-.6.2h-.2V4.6h4.4v1.2h-2.9v1h1.6l.7.3.6.6q.2.4.2 1z" aria-label="8:5"/>
-        <g fill="#ff050c" color="#000" paint-order="markers stroke fill">
-          <path d="M63.5 0v285.8h381V0h-381zm.5.5h380v284.8H64V.5z"/>
-          <path fill-opacity=".1" d="M63.7.2h380.6v285.3H63.7z"/>
-          <path d="M75.4 0v285.8h357.2V0H75.4zm.5.5H432v284.8H76V.5z"/>
-          <path fill-opacity=".1" d="M75.6.2h356.8v285.3H75.6z"/>
-          <path d="M111.1 0v285.8H397V0H111zm.4.4h285v285h-285V.4z"/>
-          <path fill-opacity=".1" d="M111.3.2h285.4v285.4H111.3z"/>
-          <path d="M173.6 0v285.8h160.8V0H173.6zm.3.3H334v285.1H174V.3z"/>
-          <path fill-opacity=".2" d="M173.7.2h160.6v285.4H173.7z"/>
-        </g>
-        <path fill="#ff050c" d="M173.7.2H199v15h-25.2z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="M181 7.2q0 .8-.2 1.5-.2.6-.6 1-.4.6-1 .8-.7.3-1.6.3h-.6l-.5-.1V9.5h.5q.2.2.6.2l.7-.1.5-.3.4-.4q.2-.3.2-.7l-.6.3-.8.1h-.7l-.6-.3-.5-.7q-.2-.4-.2-1 0-1 .7-1.6.7-.6 1.8-.6l1 .1.8.5q.3.3.5.9.2.5.2 1.3zm-1.6-.2v-.8q-.1-.4-.3-.5-.1-.2-.3-.2h-.6q-.2 0-.3.2l-.2.3-.1.5V7l.3.3.4.2h.8l.3-.1V7zm4.6.6h-1.5V6h1.6zm0 3h-1.5V9h1.6zm6.2.1h-4.1V9.6h1.3V6.3H186v-1h.6l.4-.1.3-.3.2-.4h1.3v5h1.3zm6.4-2.1-.2.9q-.1.4-.5.7-.3.3-.7.4l-1 .2q-.6 0-1-.2-.5-.1-.9-.4l-.5-1q-.2-.5-.2-1.3t.2-1.4q.1-.7.6-1.1.4-.5 1-.8.7-.2 1.6-.2h1.1v1.3h-.2l-.4-.1h-.6q-.8 0-1.2.3-.4.4-.5 1l.6-.2.8-.1h.7l.5.3q.4.2.6.6l.2 1zm-1.9.9.2-.3.1-.6v-.5l-.3-.3-.4-.1h-1.1V9l.3.5.3.2h.6q.2 0 .3-.2z" aria-label="9:16"/>
-        <path fill="#ff050c" d="M63.7.2h19.8v15.2H63.7z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="M71.7 9.3H71v1.5h-1.5V9.3h-3V8.2l2.9-3.6H71v3.6h.8zm-2.3-1.1V6l-1.8 2.2zm5.1-.5H73V6.1h1.5zm0 3H73V9.1h1.5zm6-2.8q.2.1.3.4t0 .6v.8q-.2.4-.6.6l-.8.4q-.5.2-1.2.2t-1.3-.2q-.5 0-.9-.2V9h.2l.8.4 1 .2h.5l.4-.3q.2 0 .3-.2v-.8l-.4-.3h-1.3V7h.9l.4-.1.3-.3V6q-.1-.2-.3-.2l-.3-.1h-1.3l-.8.5h-.2V4.8l1-.2 1.1-.1h1l.8.3.5.5q.2.3.1.7 0 .5-.3 1-.3.3-.8.4l.4.2q.3 0 .5.3z" aria-label="4:3"/>
-        <path fill="#ff050c" d="M412.6.2h19.8v15.1h-19.8z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="m420 8.6-.1 1-.6.6q-.3.4-.8.5-.5.2-1.2.2t-1.2-.2q-.5 0-.8-.2V9h.1l.8.4.9.1h.6q.3 0 .4-.2l.3-.3v-.8l-.3-.2q-.2-.2-.6-.2h-1.2l-.6.1h-.2V4.6h4.4v1.2h-3v1h1.7l.6.3q.4.2.6.6.2.4.2 1zm3-.9h-1.5V6.1h1.6zm0 3h-1.5V9.1h1.6zm6.7-1.4h-.9v1.4h-1.5V9.3h-3V8.1l3-3.5h1.5v3.6h.9zm-2.4-1.1V6l-1.8 2.2z" aria-label="5:4"/>
-        <path fill="#ff050c" d="M111.3.2h19.8v15.1h-19.8z" paint-order="markers stroke fill"/>
-        <path fill="#fff" d="M118.6 10.7h-4.1v-1h1.3V6.3h-1.3v-1h.5l.5-.2q.2 0 .3-.3l.1-.4h1.4v5.1h1.3zm3.3-3h-1.6V6h1.6zm0 3h-1.6V9.1h1.6zm6.1 0h-4.1v-1h1.3V6.3h-1.3v-1h.6l.4-.2q.2 0 .3-.3l.2-.4h1.3v5.1h1.3z" aria-label="1:1"/>
-      </g>
-    </svg>
+      </svg>
     `;
     return resolutionOverlay;
   }
@@ -244,6 +253,15 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     play: '▶️ Play',
     pause: '⏸️ Pause'
   }
+
+  const SVG_ICONS = ({
+    commonStart: '<svg xmlns="http://www.w3.org/2000/svg" class="mx-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+    init: function() {
+      this.chevronHorizontal = this.commonStart + '<polyline points="18 8 22 12 18 16"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="2" x2="22" y1="12" y2="12"></line></svg>',
+      this.chevronVertical = this.commonStart + '<polyline points="8 18 12 22 16 18"></polyline><polyline points="8 6 12 2 16 6"></polyline><line x1="12" x2="12" y1="2" y2="22"></line></svg>'
+      return this;
+    }
+  }).init();
 
   let e = document.createElement("details");
   e.id = BLOCK_NAME;
@@ -382,6 +400,23 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .mb-1 {
         margin-bottom: .5rem;
       }
+      #${BLOCK_NAME} .mx-0 {
+        margin-left: .125rem;
+        margin-right: .125rem;
+      }
+      #${BLOCK_NAME} .px-2 {
+        padding-left: .5rem;
+        padding-right: .5rem;
+      }
+      #${BLOCK_NAME} .d-flex {
+        display: flex;
+      }
+      #${BLOCK_NAME} .ai-c {
+        align-items: center;
+      }
+      #${BLOCK_NAME} .jc-c {
+        justify-content: center;
+      }
       #${BLOCK_NAME} #timestamp-list {
         font-size: 1.25rem;
         list-style: none;
@@ -396,7 +431,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         display: flex;
         flex-direction: column;
         margin: 3px;
-
       }
       #${BLOCK_NAME} .custom-time-control input {
         padding: 0;
@@ -458,6 +492,19 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .timestamp-screenshot span::after {
         background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M7 10h2l1-2-1-2-2-1-2 1-1 2 1 2h2zm-5 3H0V3l2-1h2l1-2h4l1 2h2l2 1v10H2z"/></svg>') no-repeat center;
       }
+
+      .svg-resolution-overlay {
+        position: absolute;
+        left: 0; /* should be copied from video el style, to center when vertical */
+        top: 0; /* should be copied from video el style, to center when vertical */
+        right: 0;
+        margin: 0 auto;
+        z-index: 1000;
+      }
+      #svg-resolution-overlay-vertical.svg-resolution-overlay {
+        transform: translateY(-100%) rotate(90deg);
+        transform-origin: left bottom;
+      }
     </style>
 
     <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
@@ -499,7 +546,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         </div>
 
       <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
-        <button id="toggleResolutionOverlay" title="Toggle resolution overlay">Toggle res.</button>
+        <button id="toggleResolutionOverlay" title="Toggle resolution overlay" class="d-flex ai-c px-2">
+        ${SVG_ICONS.chevronHorizontal} RES
+        </button>
+        <button id="toggleResolutionOverlayVertical" title="Toggle resolution overlay (vertical)" class="d-flex ai-c px-2">
+          ${SVG_ICONS.chevronVertical} RES
+        </button>
         <label class="button" for="toggleResolutionSvg" title="Add resolution overlay to screenshots">
           <input type="checkbox" id="toggleResolutionSvg" value="yeayea">
           Add res. to <span class="timestamp-screenshot" style="padding: 0"><span></span></span>
@@ -613,17 +665,25 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     if (!e.classList.contains(classFlag)) {
       wrapper.insertAdjacentHTML('beforeend', resolutionOverlaySvg(videoEl.clientWidth, videoEl.clientHeight, '.5'));
-      const svgOverlay = document.querySelector("#svg-resolution-overlay");
-      svgOverlay.style.position = "absolute";
-      svgOverlay.style.top = 0;
-      svgOverlay.style.left = 0;
-      svgOverlay.style.right = 0;
-      svgOverlay.style.margin = "0 auto";
-      svgOverlay.style.zIndex = "1000";
-
       e.classList.add(classFlag);
     } else {
       const svgOverlay = document.querySelector("#svg-resolution-overlay");
+      nukeElement(svgOverlay);
+      e.classList.remove(classFlag);
+    }
+
+  });
+
+  e.querySelector("#toggleResolutionOverlayVertical").addEventListener('click', () => {
+    const { video: videoEl } = getVideoInfo();
+    const wrapper = videoEl.parentNode;
+    const classFlag = "has-appended-resolution-overlay-vertical";
+
+    if (!e.classList.contains(classFlag)) {
+      wrapper.insertAdjacentHTML('beforeend', resolutionOverlaySvg(videoEl.clientHeight, videoEl.clientWidth, '.5', 'svg-resolution-overlay-vertical', true));
+      e.classList.add(classFlag);
+    } else {
+      const svgOverlay = document.querySelector("#svg-resolution-overlay-vertical");
       nukeElement(svgOverlay);
       e.classList.remove(classFlag);
     }

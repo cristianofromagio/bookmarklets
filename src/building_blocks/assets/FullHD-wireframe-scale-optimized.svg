@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 508 285.75">
+  <g opacity="1">
+    <g stroke="#ff050c" stroke-width=".45" paint-order="markers stroke fill">
+      <path fill="none" d="M.27.27h507.46v285.21H.27z"/>
+      <g fill="#ff050c">
+        <path fill-opacity=".05" d="M25.66.25h456.69v285.24H25.66z"/>
+        <path fill-opacity=".1" d="M63.73.23h380.53v285.28H63.73z"/>
+        <path fill-opacity=".12" d="M75.63.23h356.74v285.3H75.63z"/>
+        <path fill-opacity=".15" d="M111.33.2h285.35v285.35H111.33z"/>
+        <path fill-opacity=".2" d="M173.72.15h160.56V285.6H173.72z"/>
+      </g>
+    </g>
+    <path fill="#ff050c" d="M.27.27h25.15v15.12H.27zM461.74.25h20.61v15.12h-20.61zM173.72.15h25.15v15.12h-25.15zM63.73.23h19.81v15.12H63.73zm348.83 0h19.81v15.12h-19.81zM111.33.2h19.81v15.12h-19.81z" paint-order="markers stroke fill"/>
+    <g fill="#fff" stroke-width=".25" font-family="sans-serif" font-size="10" font-weight="bold" letter-spacing="0" word-spacing="0">
+      <text x="2" y="12">16:9</text>
+      <text x="66" y="12">4:3</text>
+      <text x="113" y="12">1:1</text>
+      <text x="176" y="12">9:16</text>
+      <text x="415" y="12">5:4</text>
+      <text x="465" y="12">8:5</text>
+    </g>
+  </g>
+</svg>
