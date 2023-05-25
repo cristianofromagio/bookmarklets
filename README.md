@@ -17,5 +17,13 @@ Automatically runs GitHub Action on `main` branch pushes if any `src/**.js` is i
 ## What can be improved
 
 - [ ] Document each script usage
-- [ ] Start versioning scripts
-- [ ] Transform scripts into both a single netscape-bookmark html file and each one into a compatible user-script (monkeyscript, tampermonkey, etc)
+  - [ ] Add metadata block to each script
+  - [ ] Auto generate documentation based on metadata from script files
+- [ ] Create single userscript including all bookmarklets as menu-action
+- [ ] Create formatted Devtools Snippets import-file
+
+## Known issues
+
+- Can't use backticks \`\` on shared building blocks to be included by twig
+- Can't declare multiple variables in one line because minifier will not be able to parse the variables name correctly to obfuscate
+- Can't place comments at end-of-line on bookmarklets snippets because `strip-comments` will not be able to remove then and will cause 'script ended too soon'.
