@@ -13,6 +13,7 @@
  *  - https://stackoverflow.com/a/45831670
  *  - https://www.discoverdev.io/blog/series/js30/27-click-drag/
  *  - https://stackoverflow.com/a/5799834
+ *  - https://www.polymer-project.org/blog/shadydom (specifically for YouTube interface)
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
@@ -193,6 +194,15 @@ if ($("#" + BLOCK_NAME)) {
       <p>Nested selector for comparing text:</p>
       <input spellcheck="false" class="${BLOCK_NAME}-config-sync mb-1" data-config-name="textSelector" id="nestedComparingTextSelector"/>
 
+      <p>Nested selector attribute:</p>
+      <input
+        spellcheck="false"
+        class="${BLOCK_NAME}-config-sync mb-1"
+        placeholde="defaults to 'textContent'"
+        value="textContent"
+        data-config-name="textSelectorAttr"
+        id="nestedComparingTextSelectorAttr"/>
+
       <p>Comparing value (to keep):</p>
       <input spellcheck="false" class="${BLOCK_NAME}-config-sync mb-1" data-config-name="compare" id="comparingValue"/>
 
@@ -231,7 +241,7 @@ if ($("#" + BLOCK_NAME)) {
 
   if (!$(`#${BLOCK_NAME}-stylesheet`)) {
     let vanishStylesheet = create("style");
-    vanishStylesheet.id = `#${BLOCK_NAME}-stylesheet`;
+    vanishStylesheet.id = `${BLOCK_NAME}-stylesheet`;
     vanishStylesheet.innerHTML = `
       .${BLOCK_NAME}-vanished-element {
         visibility: hidden;
@@ -248,13 +258,17 @@ if ($("#" + BLOCK_NAME)) {
   const config = new Map([
     ["elementsSelector", ""],
     ["textSelector", ""],
+    ["textSelectorAttr", ""],
     ["compare", ""]
   ]);
 
   e.querySelector("#vanishButtonTrigger").addEventListener('click', () => {
 
+    // SCRIPT CORE SETUP
+    // cant 'multi-declare' then in one line because minifier goes crazy
     let selector = '';
-    let comparingText = '';
+    let comparingTextBlock = '';
+    let comparingTextBlockAttr = '';
     let comparingValue = '';
     let parsedConfigs = '';
 
@@ -267,30 +281,33 @@ if ($("#" + BLOCK_NAME)) {
       } catch (err) {
         console.log('ERROR: couldnt parse configs');
         console.log(err);
+        return;
       }
+
+      selector = parsedConfigs.get("elementsSelector") || $("#vanishingElementsSelector", e).value.trim();
+      comparingTextBlock = parsedConfigs.get("textSelector") || $("#nestedComparingTextSelector", e).value.trim();
+      comparingTextBlockAttr = parsedConfigs.get("textSelectorAttr") || $("#nestedComparingTextSelectorAttr", e).value.trim();
+      comparingValue = parsedConfigs.get("compare") || $("#comparingValue", e).value.trim();
     } else {
       console.log('INFO: no configs');
-    }
 
-    if (parsedConfigs) {
-      selector = parsedConfigs.get("elementsSelector");
-      comparingText = parsedConfigs.get("textSelector");
-      comparingValue = parsedConfigs.get("compare");
-      updateCopyBookmarklet();
-    } else {
       selector = $("#vanishingElementsSelector", e).value.trim();
-      comparingText = $("#nestedComparingTextSelector", e).value.trim();
+      comparingTextBlock = $("#nestedComparingTextSelector", e).value.trim();
+      comparingTextBlockAttr = $("#nestedComparingTextSelectorAttr", e).value.trim();
       comparingValue = $("#comparingValue", e).value.trim();
 
       fillConfig(e);
-      updateCopyBookmarklet();
     }
 
-    if (!selector || !comparingText || !comparingValue) {
+    if (!selector || !comparingTextBlock || !comparingTextBlockAttr || !comparingValue) {
       console.log('INFO: required values not provided');
       return;
     }
+    // SCRIPT CORE SETUP - END
 
+    updateCopyBookmarklet();
+
+    // SCRIPT CORE RUN
     try {
 
       const selectorAll = document.querySelectorAll(selector);
@@ -304,19 +321,28 @@ if ($("#" + BLOCK_NAME)) {
       const isNegation = (comparingValueText[0] === "~") ? true : false;
 
       selectorAll.forEach((el) => {
-        const textBlock = el.querySelector(comparingText);
-        if (!textBlock) { return }
+        // window.Polymer tries to query for Polymer-based webcomponents (specifically target YouTube interface)
+        let comparingElementBlock = el.querySelector(comparingTextBlock) || window.Polymer.dom(el).shadowRoot.querySelector(comparingTextBlock);
+        if (!comparingElementBlock) {
+          console.log("Can't find any `comparingTextBlock` blocks inside the elementSelector");
+          return;
+        }
 
-        const textContent = textBlock.textContent;
-        const textContentLower = textContent.trim().toLowerCase();
+        const comparingContent = comparingElementBlock[comparingTextBlockAttr];
+        if (!comparingContent) {
+          console.log("Can't find any `comparingTextBlockAttr` attributes on the comparingElementBlock");
+          return;
+        }
+        const comparingContentLower = comparingContent.trim().toLowerCase();
 
         if (isNegation) {
-          let comparingValueTextWithoutNegation = comparingValueText.substring(1); // removes ~ symbol
-          if (textContentLower.includes(comparingValueTextWithoutNegation)) {
+          // removes ~ symbol
+          let comparingValueTextWithoutNegation = comparingValueText.substring(1);
+          if (comparingContentLower.includes(comparingValueTextWithoutNegation)) {
             el.classList.add(`${BLOCK_NAME}-vanished-element`);
           }
         } else {
-          if (!textContentLower.includes(comparingValueText)) {
+          if (!comparingContentLower.includes(comparingValueText)) {
             el.classList.add(`${BLOCK_NAME}-vanished-element`);
           }
         }
@@ -325,6 +351,8 @@ if ($("#" + BLOCK_NAME)) {
       console.log('ERROR: couldnt execute vanisher');
       console.log(err);
     }
+
+    // SCRIPT CORE RUN - END
 
   });
 
@@ -393,12 +421,14 @@ if ($("#" + BLOCK_NAME)) {
   }
 
   function fillConfig(el) {
-    let selector = el.querySelector("#vanishingElementsSelector").value.trim();
-    let comparingText = el.querySelector("#nestedComparingTextSelector").value.trim();
-    let comparingValue = el.querySelector("#comparingValue").value.trim();
+    let selector = $("#vanishingElementsSelector", el).value.trim();
+    let comparingTextBlock = $("#nestedComparingTextSelector", el).value.trim();
+    let comparingTextBlockAttr = $("#nestedComparingTextSelectorAttr", el).value.trim();
+    let comparingValue = $("#comparingValue", el).value.trim();
 
     config.set("elementsSelector", selector);
-    config.set("textSelector", comparingText);
+    config.set("textSelector", comparingTextBlock);
+    config.set("textSelectorAttr", comparingTextBlockAttr);
     config.set("compare", comparingValue);
     el.querySelector(`#${BLOCK_NAME}-config`).value = JSON.stringify(Object.fromEntries(config));
   }
@@ -410,6 +440,8 @@ if ($("#" + BLOCK_NAME)) {
 
       el.querySelector("#vanishingElementsSelector").value = pastedConfig.get("elementsSelector");
       el.querySelector("#nestedComparingTextSelector").value = pastedConfig.get("textSelector");
+      if (pastedConfig.get("textSelectorAttr"))
+        el.querySelector("#nestedComparingTextSelectorAttr").value = pastedConfig.get("textSelectorAttr");
       el.querySelector("#comparingValue").value = pastedConfig.get("compare");
     } catch (err) {
       console.log('ERROR: couldnt parse configs on paste');
@@ -422,7 +454,7 @@ if ($("#" + BLOCK_NAME)) {
     fill(triggerEl, 'href', getHeadlessBookmarklet());
     fill(triggerEl, 'title', 'Click to COPY, drag to bookmarks tab to SAVE');
     fill(triggerEl, 'style.display', 'inline-block');
-    fill(triggerEl, 'innerHTML', 'toggleabble-bookmarklet');
+    fill(triggerEl, 'textContent', 'toggleabble-purge-bookmarklet');
   }
 
   // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
