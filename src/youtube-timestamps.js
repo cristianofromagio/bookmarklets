@@ -18,6 +18,9 @@
  *  - https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
  *  - https://www.freecodecamp.org/news/how-to-center-an-absolute-positioned-element/
  *  - https://stackoverflow.com/a/21648197
+ *  - https://stackoverflow.com/a/45609229 ('timeupdate' event listener)
+ *  - https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events
+ *  - https://edisciplinas.usp.br/mod/resource/view.php?id=2825611
  */
 
 const BLOCK_NAME = "youtube-timestamps";
