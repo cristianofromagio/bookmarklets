@@ -28,6 +28,8 @@ const BLOCK_NAME = "youtube-timestamps";
 const removeItself = () => {
   window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay"));
   window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay-vertical"));
+  const { video: videoEl } = window.blockFn.getVideoInfo();
+  videoEl.removeEventListener('timeupdate', window.blockFn.verifyIntervalLoop, true);
 
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
@@ -89,6 +91,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       displayError('Unable to get video');
     }
   }
+  window.blockFn.getVideoInfo = getVideoInfo;
 
   function getTimestamps() {
     let { video } = getVideoInfo();
@@ -708,6 +711,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       callSeek(startSeconds);
     }
   }
+  window.blockFn.verifyIntervalLoop = verifyIntervalLoop;
 
   e.querySelector("#toggleLoopInterval").addEventListener('change', (ev) => {
     const { video: videoEl } = getVideoInfo();
