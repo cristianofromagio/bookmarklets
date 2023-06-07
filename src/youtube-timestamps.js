@@ -96,30 +96,25 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     };
   }
 
-  function getDownloadInterval(blockElement) {
+  function getTimestampsInterval(blockElement = false) {
+    if (!blockElement) {
+      blockElement = document.querySelector("#"+BLOCK_NAME);
+    }
+
     try {
-      let start = blockElement.querySelector('input[name="start"]:checked').value;
-      let end = blockElement.querySelector('input[name="end"]:checked').value;
+      let startEl = blockElement.querySelector('input[name="start"]:checked');
+      let endEl = blockElement.querySelector('input[name="end"]:checked');
 
-      if (!start && !end) return;
-
-      let startSeconds = blockElement.querySelector('input[name="start"]:checked').dataset.seconds;
-      let offset = Number(5); // this is used so audio is not out of sync with video at start
-      let offsetStartSeconds = 0;
-
-      // if offset is bigger than start, there is padding to use
-      if (startSeconds >= offset) {
-        offsetStartSeconds = startSeconds - offset;
+      if (!startEl && !endEl) {
+        throw('Select a start / end timestamps');
       }
 
-      // if offset would put start at negative, use start instead (no offset)
-      if ((startSeconds - offset) < Number(0)) {
-        offsetStartSeconds = startSeconds;
-      }
+      const start = startEl.value;
+      const end = endEl.value;
+      const startSeconds = startEl.dataset.seconds;
+      const endSeconds = endEl.dataset.seconds;
 
-      let offsetStart = fromSecondsToISO(offsetStartSeconds);
-
-      return { start, startSeconds, end, offset, offsetStart, offsetStartSeconds };
+      return { start, startSeconds, end, endSeconds };
     } catch (err) {
       displayError('Select a start / end timestamp');
     }
@@ -699,26 +694,34 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     let terminalCommand;
 
     try {
-      const { startSeconds, offsetStartSeconds, offset, offsetStart, end } = getDownloadInterval(e);
+      const { start, end } = getTimestampsInterval();
 
-      terminalCommand = `ffmpeg -ss ${offsetStart} -to ${end} -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
+      /*
+        this snippet save multiple outputs from same input
+        also uses `setpts` filter, so we dont need to use the "start 5 seconds before then ss 5 seconds"
+          to fix audio-delay and/or black video start on output
 
-      // add offset only if there is offset applied to the interval
-      if (startSeconds > offsetStartSeconds) {
-        terminalCommand += ` -ss ${offset}`;
-      }
+        ffmpeg
+        -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest 'https://www.youtube.com/watch?v=--y3Rw3a4Zs')"
+        -ss 00:00:48.30 -to 00:00:53.35 -vf "setpts=PTS-STARTPTS,crop='9/16*in_h':in_h" "video-1.mp4"
+        -ss 00:05:28.72 -to 00:05:34.51 -vf "setpts=PTS-STARTPTS,crop=in_h" "video-2.mp4"
+      */
+
+      terminalCommand = `ffmpeg -i "$(youtube-dl -f best --get-url --youtube-skip-dash-manifest '${videoUrl}')"`;
+      terminalCommand += ` -ss ${start} -to ${end}`;
+
     } catch(e) {
       return;
     }
 
     const commandOptions = {
-      'v': ` "${videoTitle}.mp4"`,
-      'v11': ` -vf "crop=in_h" "${videoTitle}.mp4"`,
-      'v916': ` -vf "crop='9/16*in_h':in_h" "${videoTitle}.mp4"`,
-      'v54': ` -vf "crop='5/4*in_h':in_h" "${videoTitle}.mp4"`,
-      'v43': ` -vf "crop='4/3*in_h':in_h" "${videoTitle}.mp4"`,
-      'v85': ` -vf "crop='8/5*in_h':in_h" "${videoTitle}.mp4"`,
-      'a': ` "${videoTitle}.mp3"`
+      'v': ` -vf "setpts=PTS-STARTPTS" "${videoTitle}.mp4"`,
+      'v11': ` -vf "setpts=PTS-STARTPTS,crop=in_h" "${videoTitle}.mp4"`,
+      'v916': ` -vf "setpts=PTS-STARTPTS,crop='9/16*in_h':in_h" "${videoTitle}.mp4"`,
+      'v54': ` -vf "setpts=PTS-STARTPTS,crop='5/4*in_h':in_h" "${videoTitle}.mp4"`,
+      'v43': ` -vf "setpts=PTS-STARTPTS,crop='4/3*in_h':in_h" "${videoTitle}.mp4"`,
+      'v85': ` -vf "setpts=PTS-STARTPTS,crop='8/5*in_h':in_h" "${videoTitle}.mp4"`,
+      'a': ` -vf "setpts=PTS-STARTPTS" "${videoTitle}.mp3"`
     };
 
     const selectedCommand = commandOptions[selectedOption];
