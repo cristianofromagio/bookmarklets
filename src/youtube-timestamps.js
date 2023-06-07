@@ -88,7 +88,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
 
   function getTimestamps() {
-    let video = document.querySelector(".video-stream");
+    let { video } = getVideoInfo();
     let currentSeconds = video.currentTime;
     return {
       seconds: currentSeconds,
@@ -250,10 +250,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
 
   const SVG_ICONS = ({
-    commonStart: '<svg xmlns="http://www.w3.org/2000/svg" class="mx-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+    commonStartChevron: '<svg xmlns="http://www.w3.org/2000/svg" class="mx-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
     init: function() {
-      this.chevronHorizontal = this.commonStart + '<polyline points="18 8 22 12 18 16"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="2" x2="22" y1="12" y2="12"></line></svg>',
-      this.chevronVertical = this.commonStart + '<polyline points="8 18 12 22 16 18"></polyline><polyline points="8 6 12 2 16 6"></polyline><line x1="12" x2="12" y1="2" y2="22"></line></svg>'
+      this.chevronHorizontal = this.commonStartChevron + '<polyline points="18 8 22 12 18 16"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="2" x2="22" y1="12" y2="12"></line></svg>',
+      this.chevronVertical = this.commonStartChevron + '<polyline points="8 18 12 22 16 18"></polyline><polyline points="8 6 12 2 16 6"></polyline><line x1="12" x2="12" y1="2" y2="22"></line></svg>',
+      this.repeatLoop = '<svg xmlns="http://www.w3.org/2000/svg" class="mx-0" width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="m18.37 8-4.5 2.6V9H6.89v4h-2V7h8.98V5.4l4.5 2.6Zm-8.24 9h8.98v-6h-2v4h-6.98v-1.6L5.63 16l4.5 2.6V17Z"/></svg>'
       return this;
     }
   }).init();
@@ -403,8 +404,21 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         padding-left: .5rem;
         padding-right: .5rem;
       }
+      #${BLOCK_NAME} .d-none {
+        display: none;
+      }
       #${BLOCK_NAME} .d-flex {
         display: flex;
+      }
+      #${BLOCK_NAME} .flex-equals > * {
+        flex: 1 1 0px;
+        min-width: 0;
+      }
+      #${BLOCK_NAME} .flex-equals > *.size-to-content {
+        flex: 0 0 auto !important;
+      }
+      #${BLOCK_NAME} .d-inline-block {
+        display: inline-block;
       }
       #${BLOCK_NAME} .ai-c {
         align-items: center;
@@ -510,9 +524,13 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
       <ul id="timestamp-list"></ul>
 
-      <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
-        <button id="createTimestampTrigger">Snapshot timestamp</button>
-        <button id="mediaControlTrigger">${ mediaState.play }</button>
+      <div class="${BLOCK_NAME}-action-buttons flex-equals" style="flex-wrap: nowrap">
+        <button class="px-2" id="createTimestampTrigger">Set timestamp</button>
+        <label id="intervalLoopToggle" class="button size-to-content d-none ai-c px-2" for="toggleLoopInterval" title="Loop video on set interval">
+          <input type="checkbox" id="toggleLoopInterval" value="yeayea">
+          ${SVG_ICONS.repeatLoop}
+        </label>
+        <button class="size-to-content" id="mediaControlTrigger">${ mediaState.play }</button>
       </div>
 
       <hr class="mb-1">
@@ -599,19 +617,46 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     }
   });
 
+  function verifyIfBoundariesIsValid() {
+    const selectedStart = document.querySelector("#"+BLOCK_NAME+" input[name=start]:checked");
+    const selectedEnd = document.querySelector("#"+BLOCK_NAME+" input[name=end]:checked");
+    const intervalLoopToggleEl = document.querySelector("#"+BLOCK_NAME+" #intervalLoopToggle");
+
+    if (selectedStart && selectedEnd && selectedStart.value < selectedEnd.value) {
+      intervalLoopToggleEl.classList.remove("d-none");
+      intervalLoopToggleEl.classList.add("d-flex");
+    } else {
+      const toggleInput = intervalLoopToggleEl.querySelector('input');
+      toggleInput.checked = false;
+      const evt = new Event("change");
+      toggleInput.dispatchEvent(evt);
+
+      intervalLoopToggleEl.classList.remove("d-flex");
+      intervalLoopToggleEl.classList.add("d-none");
+    }
+  }
+  window.blockFn.boundaryClicked = verifyIfBoundariesIsValid;
+
+  function removeTimestampEntry(el) {
+    nukeElement(el.parentNode);
+    verifyIfBoundariesIsValid();
+  }
+  window.blockFn.removeTimestampEntry = removeTimestampEntry;
+
   e.querySelector("#createTimestampTrigger").addEventListener('click', () => {
     let { seconds, isoFormatted } = getTimestamps();
 
     let entry = document.createElement('li');
     entry.innerHTML = `
-      <span onclick="blockFn.callSeek(${seconds})">
+      <span>
         [
-        <input type="radio" name="start" value="${isoFormatted}" data-seconds="${seconds}">
+        <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="start" value="${isoFormatted}" data-seconds="${seconds}">
         <span title="${seconds}">${isoFormatted}</span>
-        <input type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
+        <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
         ]
       </span>
-      <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.nukeElement(this.parentNode)"><span></span></button>
+      <button onclick="blockFn.callSeek(${seconds})">GOTO</button>
+      <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.removeTimestampEntry(this)"><span></span></button>
     `;
     // entry.onclick = () => { callSeek(seconds) };
     e.querySelector("#timestamp-list").appendChild(entry);
@@ -651,6 +696,23 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         displayError(errMsg);
       }
     });
+  });
+
+  function verifyIntervalLoop() {
+    const { startSeconds, endSeconds } = getTimestampsInterval();
+
+    if (!this.paused && (this.currentTime < startSeconds || this.currentTime > endSeconds)) {
+      callSeek(startSeconds);
+    }
+  }
+
+  e.querySelector("#toggleLoopInterval").addEventListener('change', (ev) => {
+    const { video: videoEl } = getVideoInfo();
+    if (ev.target.checked) {
+      videoEl.addEventListener('timeupdate', verifyIntervalLoop, true);
+    } else {
+      videoEl.removeEventListener('timeupdate', verifyIntervalLoop, true);
+    }
   });
 
   e.querySelector("#toggleResolutionOverlay").addEventListener('click', () => {
