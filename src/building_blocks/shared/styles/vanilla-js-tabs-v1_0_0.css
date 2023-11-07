@@ -1,15 +1,10 @@
 :root {
-  --backgroung: #fafafa;
-  --background-active: #fff;
-  --border: #ccc;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --backgroung: #303030;
-    --background-active: #262626;
-    --border: #707070;
-  }
+  /* --backgroung: #303030; */
+  --backgroung: transparent;
+  /* --background-active: #262626; */
+  /* --background-active: transparent; */
+  --background-active: rgba(27, 32, 50, .9);
+  --border: #707070;
 }
 
 .js-tabs {
@@ -21,6 +16,7 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
+  text-align: left;
 }
 .js-tabs__header li {
   display: inline-block;
@@ -37,11 +33,15 @@
 
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
+  border-top-width: 0;
 }
 .js-tabs__title span {
   font-weight: bold;
   opacity: .8;
   transition: all .3s;
+
+  font-size: .75em;
+  text-transform: uppercase;
 }
 .js-tabs__title:hover {
   text-decoration: none;
@@ -58,13 +58,12 @@
 }
 
 .js-tabs__content {
-  background-color: var(--background-active); /* it will always be "active" if visible */
+  background-color: var(--background-active);
   border: 1px solid var(--border);
-  /* line-height: 1.5; */
   margin-top: -1px;
   padding: .5em;
 
-  border-top-right-radius: 5px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  /* border-top-right-radius: 5px; */
+  /* border-bottom-left-radius: 5px; */
+  /* border-bottom-right-radius: 5px; */
 }

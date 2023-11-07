@@ -70,7 +70,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  // @twing-include {% include 'building_blocks/shared/scripts/qrcodegen-v1_8_0-es5.min.js' %}
+  // @twing-include {% include 'building_blocks/shared/scripts/vanilla-js-tabs-v1_0_0.min.js' %}
 
   window.blockFn = {};
   window.blockFn.removeItself = removeItself;
@@ -531,76 +531,101 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
     <span id="alert"></span>
 
-    <div style="padding: 8px">
+    <!-- outer element -->
+    <!-- <div style="padding: 8px"> --> 
 
-      <ul id="timestamp-list"></ul>
+      <div class="js-tabs" id="tabs">
 
-      <div class="${BLOCK_NAME}-action-buttons flex-equals" style="flex-wrap: nowrap">
-        <button class="px-2" id="createTimestampTrigger">Set timestamp</button>
-        <label id="intervalLoopToggle" class="button size-to-content d-none ai-c px-2" for="toggleLoopInterval" title="Loop video on set interval">
-          <input type="checkbox" id="toggleLoopInterval" value="yeayea">
-          ${SVG_ICONS.repeatLoop}
-        </label>
-        <button class="size-to-content" id="mediaControlTrigger">${ mediaState.play }</button>
-      </div>
+        <!-- Tabs headers -->
+        <ul class="js-tabs__header">
+          <li class="js-tabs__title">
+            <span>Single</span>
+          </li>
+          <li class="js-tabs__title">
+            <span>Multi</span>
+          </li>
+        </ul>
 
-      <hr class="mb-1">
+        <!-- Tab entry -->
+        <div class="js-tabs__content" id="active-tab-singlevideo">
+        
+          <ul id="timestamp-list"></ul>
 
-      <div class="${BLOCK_NAME}-action-buttons">
-
-        <button class="time-control" data-amount="-5"> -5s </button>
-        <button class="time-control" data-amount="-1"> -1s </button>
-        <button class="time-control" data-amount="-.5"> -.5s </button>
-
-        <div class="custom-time-control" style="flex:1">
-          <input type="text" id="custom-time-control-amount" value=".1"/>
-          <div class="btn-group">
-            <button class="btn-group-start time-control" data-amount="-x">
-              -
-            </button>
-            <button class="btn-group-end time-control" data-amount="+x">
-              +
-            </button>
+          <div class="${BLOCK_NAME}-action-buttons flex-equals" style="flex-wrap: nowrap">
+            <button class="px-2" id="createTimestampTrigger">Set timestamp</button>
+            <label id="intervalLoopToggle" class="button size-to-content d-none ai-c px-2" for="toggleLoopInterval" title="Loop video on set interval">
+              <input type="checkbox" id="toggleLoopInterval" value="yeayea">
+              ${SVG_ICONS.repeatLoop}
+            </label>
+            <button class="size-to-content" id="mediaControlTrigger">${ mediaState.play }</button>
           </div>
+    
+          <hr class="mb-1">
+    
+          <div class="${BLOCK_NAME}-action-buttons">
+    
+            <button class="time-control" data-amount="-5"> -5s </button>
+            <button class="time-control" data-amount="-1"> -1s </button>
+            <button class="time-control" data-amount="-.5"> -.5s </button>
+    
+            <div class="custom-time-control" style="flex:1">
+              <input type="text" id="custom-time-control-amount" value=".1"/>
+              <div class="btn-group">
+                <button class="btn-group-start time-control" data-amount="-x">
+                  -
+                </button>
+                <button class="btn-group-end time-control" data-amount="+x">
+                  +
+                </button>
+              </div>
+            </div>
+    
+            <button class="time-control" data-amount=".5"> +.5s </button>
+            <button class="time-control" data-amount="1"> +1s </button>
+            <button class="time-control" data-amount="5"> +5s </button>
+            </div>
+    
+          <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
+            <button id="toggleResolutionOverlay" title="Toggle resolution overlay" class="d-flex ai-c px-2">
+            ${SVG_ICONS.chevronHorizontal} RES
+            </button>
+            <button id="toggleResolutionOverlayVertical" title="Toggle resolution overlay (vertical)" class="d-flex ai-c px-2">
+              ${SVG_ICONS.chevronVertical} RES
+            </button>
+            <label class="button" for="toggleResolutionSvg" title="Add resolution overlay to screenshots">
+              <input type="checkbox" id="toggleResolutionSvg" value="yeayea">
+              Add res. to <span class="timestamp-screenshot" style="padding: 0"><span></span></span>
+            </label>
+          </div>
+    
+          <div class="${BLOCK_NAME}-action-buttons">
+    
+            <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
+              <option value="v" selected>Video download</option>
+              <option value="v11">Video (squared 1:1) download</option>
+              <option value="v916">Video (portrait 9:16) download</option>
+              <option value="v54">Video (5:4) download</option>
+              <option value="v43">Video (4:3) download</option>
+              <option value="v85">Video (8:5) download</option>
+              <option value="a">Audio only download</option>
+            </select>
+    
+            <button class="fb-100 mb-1" id="copyCommand">Copy selected download command</button>
+    
+            <button
+              onclick="blockFn.removeItself()"
+              class="fb-100">Close</button>
+          </div>
+        
         </div>
 
-        <button class="time-control" data-amount=".5"> +.5s </button>
-        <button class="time-control" data-amount="1"> +1s </button>
-        <button class="time-control" data-amount="5"> +5s </button>
+        <!-- Tab entry -->
+        <div class="js-tabs__content" id="active-tab-multivideo">
+          Multi tab content
         </div>
 
-      <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
-        <button id="toggleResolutionOverlay" title="Toggle resolution overlay" class="d-flex ai-c px-2">
-        ${SVG_ICONS.chevronHorizontal} RES
-        </button>
-        <button id="toggleResolutionOverlayVertical" title="Toggle resolution overlay (vertical)" class="d-flex ai-c px-2">
-          ${SVG_ICONS.chevronVertical} RES
-        </button>
-        <label class="button" for="toggleResolutionSvg" title="Add resolution overlay to screenshots">
-          <input type="checkbox" id="toggleResolutionSvg" value="yeayea">
-          Add res. to <span class="timestamp-screenshot" style="padding: 0"><span></span></span>
-        </label>
       </div>
-
-      <div class="${BLOCK_NAME}-action-buttons">
-
-        <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
-          <option value="v" selected>Video download</option>
-          <option value="v11">Video (squared 1:1) download</option>
-          <option value="v916">Video (portrait 9:16) download</option>
-          <option value="v54">Video (5:4) download</option>
-          <option value="v43">Video (4:3) download</option>
-          <option value="v85">Video (8:5) download</option>
-          <option value="a">Audio only download</option>
-        </select>
-
-        <button class="fb-100 mb-1" id="copyCommand">Copy selected download command</button>
-
-        <button
-          onclick="blockFn.removeItself()"
-          class="fb-100">Close</button>
-      </div>
-    </div>
+    <!-- </div> -->
   `;
 
   document.body.append(e);
@@ -850,5 +875,10 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     e.style.left = Number(ev.clientX + offset[0]) + 'px';
     e.style.top  = Number(ev.clientY + offset[1]) + 'px';
   }, true);
+
+  let targetTabs = new Tabs({
+    elem: "tabs",
+    open: 0
+  });
 
 }
