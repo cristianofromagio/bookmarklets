@@ -70,6 +70,8 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
+  // @twing-include {% include 'building_blocks/shared/scripts/qrcodegen-v1_8_0-es5.min.js' %}
+
   window.blockFn = {};
   window.blockFn.removeItself = removeItself;
 
@@ -270,6 +272,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.setAttribute("open", "");
   e.innerHTML = `
     <style>
+    
+      // @twing-include {% include 'building_blocks/shared/styles/vanilla-js-tabs-v1_0_0.css' %}
+      
       #${BLOCK_NAME} {
         display: block;
         padding: 0;
