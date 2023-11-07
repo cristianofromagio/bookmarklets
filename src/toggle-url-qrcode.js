@@ -27,7 +27,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  // @twing-include {% include 'building_blocks/shared/scripts/qrcodegen-v1.8.0-es5.min.js' %}
+  // @twing-include {% include 'building_blocks/shared/scripts/qrcodegen-v1_8_0-es5.min.js' %}
 
   let e = document.createElement("dialog");
   e.id = BLOCK_NAME;
