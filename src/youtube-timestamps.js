@@ -31,7 +31,7 @@ const removeItself = () => {
   window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay"));
   window.blockFn.nukeElement(document.querySelector("#svg-resolution-overlay-vertical"));
   const { video: videoEl } = window.blockFn.getVideoInfo();
-  videoEl.removeEventListener('timeupdate', window.blockFn.verifyIntervalLoop, true);
+  if (videoEl) videoEl.removeEventListener('timeupdate', window.blockFn.verifyIntervalLoop, true);
 
   let e = document.querySelector("#" + BLOCK_NAME);
   e.parentNode.removeChild(e);
