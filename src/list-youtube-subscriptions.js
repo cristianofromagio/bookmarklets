@@ -164,15 +164,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         display: none;
         font-size: 12px;
       }
-      #${BLOCK_NAME} .move-handler {
-      	float: right;
-        font-weight: bolder;
-        padding: .125rem .5rem;
-        margin-top: -.125rem;
-        background-color: rgba(0,0,0,.1);
-        border-radius: 3px;
-        cursor: move;
-      }
       #${BLOCK_NAME} p {
         margin: 4px 0 2px;
         text-align: left;
@@ -222,7 +213,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
     </style>
 
-    <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
+    <summary>${BLOCK_NAME}</summary>
 
     <span id="alert"></span>
 
@@ -450,5 +441,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
     });
   });
+  
+  // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
 
 }

@@ -15,6 +15,8 @@
  *  - uses a embeded version of https://github.com/nayuki/QR-Code-generator/releases/tag/v1.8.0
  */
 
+// @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
+
 const BLOCK_NAME = "block-toggle-url-qrcode";
 
 const removeItself = () => {
@@ -112,4 +114,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.addEventListener('close', function onClose() {
     removeItself();
   });
+
+  // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
+  
 }

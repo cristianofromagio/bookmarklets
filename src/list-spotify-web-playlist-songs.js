@@ -5,6 +5,8 @@
  *  - https://stackoverflow.com/a/58998061 (add unique objects to Set)
  */
 
+// @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
+
 const BLOCK_NAME = "list-spotify-web-playlist-songs";
 
 const removeItself = () => {
@@ -262,5 +264,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.querySelector(`#${BLOCK_NAME}-songs-copy`).addEventListener('click', () => {
     copyTextareaToClipboard(e.querySelector(`#${BLOCK_NAME}-songs`));
   });
+
+  // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
 
 }

@@ -23,6 +23,8 @@
  *  - https://edisciplinas.usp.br/mod/resource/view.php?id=2825611
  */
 
+// @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
+
 const BLOCK_NAME = "youtube-timestamps";
 
 const removeItself = () => {
@@ -391,15 +393,6 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         flex-wrap: wrap;
         justify-content: space-between;
       }
-      #${BLOCK_NAME} .move-handler {
-      	float: right;
-        font-weight: bolder;
-        padding: .125rem .5rem;
-        margin-top: -.125rem;
-        background-color: rgba(0,0,0,.1);
-        border-radius: 3px;
-        cursor: move;
-      }
 
       #${BLOCK_NAME} .fb-100 {
         flex-basis: 100%;
@@ -527,7 +520,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
     </style>
 
-    <summary>${BLOCK_NAME} <span id="moveHandler" class="move-handler">move</span></summary>
+    <summary>${BLOCK_NAME}</summary>
 
     <span id="alert"></span>
 
@@ -837,48 +830,11 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     }
   });
 
-  let offset = [0, 0];
-  let moveTriggered = false;
-
-  const moveHandler = document.getElementById('moveHandler');
-
-  moveHandler.addEventListener('mousedown', (ev) => {
-    moveTriggered = true;
-    ev.preventDefault();
-
-    const { top, left } = e.getBoundingClientRect();
-
-    offset = [
-      left - ev.clientX,
-      top - ev.clientY
-    ];
-  }, true);
-
-  moveHandler.addEventListener('mouseup', () => {
-    moveTriggered = false;
-  }, true);
-
-  // this is useful if moveHandler is not small,
-  //  otherwise, it falls behind the positioning style update and breaks out of moving
-  moveHandler.addEventListener('mouseleave', () => {
-    moveTriggered = false;
-  }, true);
-
-  moveHandler.addEventListener('mousemove', (ev) => {
-    if (!moveTriggered) return;
-    ev.preventDefault();
-
-    // set right to default value, needed for calculations
-    // (otherwise element stretch from 0-right to the new position)
-    e.style.right = 'auto';
-
-    e.style.left = Number(ev.clientX + offset[0]) + 'px';
-    e.style.top  = Number(ev.clientY + offset[1]) + 'px';
-  }, true);
-
   let targetTabs = new Tabs({
     elem: "tabs",
     open: 0
   });
+
+  // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
 
 }
