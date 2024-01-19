@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<body>
+<script src="https://rawgit.com/w3c/web-platform-tests/master/resources/testharness.js"></script>
+<script src="https://rawgit.com/w3c/web-platform-tests/master/resources/testharnessreport.js"></script>
+
+<script src="../src/building_blocks/shared/scripts/chrono-bundle.min.js"></script>
+
+<p id="out"></p>
+
+<script>
+test(function() {
+
+    function calculate(dateString) {
+        let timezones = Object.keys(Chrono.tzmap);
+        let regex = new RegExp("\\b('" + timezones.join('|') + "')\\b", "gm");
+
+        let foundTzs = dateString.match(regex);
+                
+        if (foundTzs.length > 0) {
+            return Chrono.parseDate(dateString, {
+                timezone: foundTzs[0]
+            });
+        }
+
+        return Chrono.parseDate(dateString);
+    }
+
+    function log(val) {
+        document.querySelector("#out").innerHTML += val + "<br>";
+        console.log(val);
+        return val;
+    }
+    
+    const formatToLocale = (val) => val.toLocaleString('pt-BR', {dateStyle:"long", timeStyle:"full", timezoneName:"long"});
+
+    // verify with https://time.is/compare/1800_01_Jan_2024_in_CET
+    //  or https://savvytime.com/converter/pt-to-brt
+    var collection = [
+        {
+            source: "Monday 1st January at 18:00 CET",
+            expected: "1 de janeiro de 2024 às 14:00:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "January 8, 2024 at 11:59pm PT",
+            expected: "9 de janeiro de 2024 às 04:59:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "March 23, 2023 at 1:00 PM (PT)",
+            expected: "23 de março de 2023 às 17:00:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "10 am PT Wednesday, January 10",
+            expected: "10 de janeiro de 2024 às 15:00:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "January 13th, 17:00 CET",
+            expected: "13 de janeiro de 2024 às 13:00:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "15:30 CET January 15th",
+            expected: "15 de janeiro de 2024 às 11:30:00 Horário Padrão de Brasília"
+        },
+        {
+            source: "15:30 CET 15th January",
+            expected: "15 de janeiro de 2024 às 11:30:00 Horário Padrão de Brasília"
+        },
+    ];
+
+    for (var i = 0; i < collection.length; i++) { 
+        log("<br>" + collection[i].source);
+        assert_equals(log(formatToLocale(calculate(collection[i].source))), collection[i].expected);
+    }
+
+}, 'Assert parsed dates are as expected.');
+</script>
+</body>
