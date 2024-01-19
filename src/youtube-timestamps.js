@@ -21,6 +21,7 @@
  *  - https://stackoverflow.com/a/45609229 ('timeupdate' event listener)
  *  - https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events
  *  - https://edisciplinas.usp.br/mod/resource/view.php?id=2825611
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
@@ -97,12 +98,31 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
   window.blockFn.getVideoInfo = getVideoInfo;
 
-  function getTimestamps() {
+  function getTimestamps(pos) {
     let { video } = getVideoInfo();
-    let currentSeconds = video.currentTime;
+
+    let targetSeconds;
+    if (pos === 'current') {
+      targetSeconds = video.currentTime;
+    } else if (pos === 'start') {
+      targetSeconds = Number(0);
+    } else if (pos === 'end') {
+      targetSeconds = video.duration;
+      // is a livestream
+      if (targetSeconds === +Infinity) {
+        targetSeconds = video.currentTime;
+      }
+    }
+
+    // invalid target option or no media data available
+    if (targetSeconds === NaN ) {
+      displayAlert('Impossible to get video timestamps');
+      return;
+    }
+
     return {
-      seconds: currentSeconds,
-      isoFormatted: fromSecondsToISO(currentSeconds)
+      seconds: Number(targetSeconds),
+      isoFormatted: fromSecondsToISO(targetSeconds)
     };
   }
 
@@ -274,9 +294,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   e.setAttribute("open", "");
   e.innerHTML = `
     <style>
-    
+
       // @twing-include {% include 'building_blocks/shared/styles/vanilla-js-tabs-v1_0_0.css' %}
-      
+
       #${BLOCK_NAME} {
         display: block;
         padding: 0;
@@ -440,6 +460,27 @@ if (document.querySelector("#" + BLOCK_NAME)) {
         padding-bottom: .25em;
         transition: all .3s ease;
       }
+      #${BLOCK_NAME} .btn-group {
+        display: flex;
+      }
+      #${BLOCK_NAME} .btn-group button:first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: 1px solid #262626;
+        margin-right: 0;
+      }
+      #${BLOCK_NAME} .btn-group button.btn-group-mid {
+        border-radius: 0;
+        border-right: 1px solid #262626;
+        margin-right: 0;
+        margin-left: 0;
+        flex-grow: 1;
+      }
+      #${BLOCK_NAME} .btn-group button:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: 0;
+      }
       #${BLOCK_NAME} .custom-time-control {
         display: flex;
         flex-direction: column;
@@ -463,33 +504,29 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       #${BLOCK_NAME} .custom-time-control button {
         margin: 0;
         line-height: 14px;
-        font-weigth: bold;
+        font-weight: bold;
         font-size: 15px;
         padding: 0 6px;
       }
-      #${BLOCK_NAME} .custom-time-control .btn-group {
-        display: flex;
-      }
-      #${BLOCK_NAME} .custom-time-control .btn-group button.btn-group-start {
+      #${BLOCK_NAME} .custom-time-control .btn-group button:first-child {
         border-top-left-radius: 0;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        border-right: 1px solid #262626;
         padding-bottom: 3px;
       }
-      #${BLOCK_NAME} .custom-time-control .btn-group button.btn-group-end {
-        border-top-left-radius: 0;
+      #${BLOCK_NAME} .custom-time-control .btn-group button:last-child {
         border-top-right-radius: 0;
-        border-bottom-left-radius: 0;
         padding-top: 2px;
       }
 
       #${BLOCK_NAME} .timestamp-delete,
-      #${BLOCK_NAME} .timestamp-screenshot {
+      #${BLOCK_NAME} .timestamp-screenshot,
+      #${BLOCK_NAME} .media-start,
+      #${BLOCK_NAME} .media-end {
         padding: 0 .75em;
       }
       #${BLOCK_NAME} .timestamp-delete span::after,
-      #${BLOCK_NAME} .timestamp-screenshot span::after {
+      #${BLOCK_NAME} .timestamp-screenshot span::after,
+      #${BLOCK_NAME} .media-start span::after,
+      #${BLOCK_NAME} .media-end span::after {
         content: "";
         background-size: 100%;
         display: inline-block;
@@ -504,6 +541,12 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
       #${BLOCK_NAME} .timestamp-screenshot span::after {
         background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M7 10h2l1-2-1-2-2-1-2 1-1 2 1 2h2zm-5 3H0V3l2-1h2l1-2h4l1 2h2l2 1v10H2z"/></svg>') no-repeat center;
+      }
+      #${BLOCK_NAME} .media-start span::after {
+        background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white"><path d="M3.75 2c.41 0 .75.34.75.75v10.5c0 .41-.34.75-.75.75h-.5a.75.75 0 0 1-.75-.75V2.75c0-.41.34-.75.75-.75zm7.46.82c1-.62 2.29.1 2.29 1.28v7.8a1.5 1.5 0 0 1-2.29 1.28L4.9 9.28a1.5 1.5 0 0 1 0-2.56z"/></svg>') no-repeat center;
+      }
+      #${BLOCK_NAME} .media-end span::after {
+        background: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white"><path d="M12.25 2a.75.75 0 0 0-.75.75v10.5c0 .41.34.75.75.75h.5c.41 0 .75-.34.75-.75V2.75a.75.75 0 0 0-.75-.75zm-7.46.82c-1-.62-2.29.1-2.29 1.28v7.8a1.5 1.5 0 0 0 2.29 1.28l6.32-3.9a1.5 1.5 0 0 0 0-2.56z"/></svg>') no-repeat center;
       }
 
       .svg-resolution-overlay {
@@ -525,7 +568,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     <span id="alert"></span>
 
     <!-- outer element -->
-    <!-- <div style="padding: 8px"> --> 
+    <!-- <div style="padding: 8px"> -->
 
       <div class="js-tabs" id="tabs">
 
@@ -541,43 +584,53 @@ if (document.querySelector("#" + BLOCK_NAME)) {
 
         <!-- Tab entry -->
         <div class="js-tabs__content" id="active-tab-singlevideo">
-        
+
           <ul id="timestamp-list"></ul>
 
           <div class="${BLOCK_NAME}-action-buttons flex-equals" style="flex-wrap: nowrap">
-            <button class="px-2" id="createTimestampTrigger">Set timestamp</button>
+
+          <div class="btn-group">
+            <button class="mark-control media-start" data-position="start" title="Mark media beginning">
+              <span></span>
+            </button>
+            <button class="mark-control btn-group-mid px-2" data-position="current">Set timestamp</button>
+            <button class="mark-control media-end" data-position="end" title="Mark media end">
+              <span></span>
+            </button>
+          </div>
+
             <label id="intervalLoopToggle" class="button size-to-content d-none ai-c px-2" for="toggleLoopInterval" title="Loop video on set interval">
               <input type="checkbox" id="toggleLoopInterval" value="yeayea">
               ${SVG_ICONS.repeatLoop}
             </label>
             <button class="size-to-content" id="mediaControlTrigger">${ mediaState.play }</button>
           </div>
-    
+
           <hr class="mb-1">
-    
+
           <div class="${BLOCK_NAME}-action-buttons">
-    
+
             <button class="time-control" data-amount="-5"> -5s </button>
             <button class="time-control" data-amount="-1"> -1s </button>
             <button class="time-control" data-amount="-.5"> -.5s </button>
-    
+
             <div class="custom-time-control" style="flex:1">
               <input type="text" id="custom-time-control-amount" value=".1"/>
               <div class="btn-group">
-                <button class="btn-group-start time-control" data-amount="-x">
+                <button class="time-control" data-amount="-x">
                   -
                 </button>
-                <button class="btn-group-end time-control" data-amount="+x">
+                <button class="time-control" data-amount="+x">
                   +
                 </button>
               </div>
             </div>
-    
+
             <button class="time-control" data-amount=".5"> +.5s </button>
             <button class="time-control" data-amount="1"> +1s </button>
             <button class="time-control" data-amount="5"> +5s </button>
             </div>
-    
+
           <div class="${BLOCK_NAME}-action-buttons" style="flex-wrap:nowrap">
             <button id="toggleResolutionOverlay" title="Toggle resolution overlay" class="d-flex ai-c px-2">
             ${SVG_ICONS.chevronHorizontal} RES
@@ -590,9 +643,9 @@ if (document.querySelector("#" + BLOCK_NAME)) {
               Add res. to <span class="timestamp-screenshot" style="padding: 0"><span></span></span>
             </label>
           </div>
-    
+
           <div class="${BLOCK_NAME}-action-buttons">
-    
+
             <select class="fb-100" name="copyCommandSelect" id="copyCommandSelect">
               <option value="v" selected>Video download</option>
               <option value="v11">Video (squared 1:1) download</option>
@@ -602,14 +655,14 @@ if (document.querySelector("#" + BLOCK_NAME)) {
               <option value="v85">Video (8:5) download</option>
               <option value="a">Audio only download</option>
             </select>
-    
+
             <button class="fb-100 mb-1" id="copyCommand">Copy selected download command</button>
-    
+
             <button
               onclick="blockFn.removeItself()"
               class="fb-100">Close</button>
           </div>
-        
+
         </div>
 
         <!-- Tab entry -->
@@ -672,39 +725,44 @@ if (document.querySelector("#" + BLOCK_NAME)) {
   }
   window.blockFn.removeTimestampEntry = removeTimestampEntry;
 
-  e.querySelector("#createTimestampTrigger").addEventListener('click', () => {
-    let { seconds, isoFormatted } = getTimestamps();
+  e.querySelectorAll('.mark-control').forEach(item => {
+    item.addEventListener('click', ev => {
+      let targetPos = ev.currentTarget.dataset.position;
+      console.log(targetPos);
 
-    let entry = document.createElement('li');
-    entry.innerHTML = `
-      <span>
-        [
-        <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="start" value="${isoFormatted}" data-seconds="${seconds}">
-        <span title="${seconds}">${isoFormatted}</span>
-        <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
-        ]
-      </span>
-      <button onclick="blockFn.callSeek(${seconds})">GOTO</button>
-      <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.removeTimestampEntry(this)"><span></span></button>
-    `;
-    // entry.onclick = () => { callSeek(seconds) };
-    e.querySelector("#timestamp-list").appendChild(entry);
+      let { seconds, isoFormatted } = getTimestamps(targetPos);
 
-    let scrn = document.createElement('button');
-    scrn.className = "timestamp-screenshot";
-    // scrn.style.backgroundColor = "#61688C";
-    scrn.style.backgroundColor = "#618C85";
-    scrn.title = `Save screenshot at ${isoFormatted}`;
-    scrn.innerHTML = "<span></span>";
-    scrn.onclick = () => { saveVideoScreenshot({ seconds, isoFormatted }) };
-    entry.appendChild(scrn);
+      let entry = document.createElement('li');
+      entry.innerHTML = `
+        <span>
+          [
+          <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="start" value="${isoFormatted}" data-seconds="${seconds}">
+          <span title="${seconds}">${isoFormatted}</span>
+          <input onclick="blockFn.boundaryClicked()" class="timestamp-boundary" type="radio" name="end" value="${isoFormatted}" data-seconds="${seconds}">
+          ]
+        </span>
+        <button onclick="blockFn.callSeek(${seconds})">GOTO</button>
+        <button class="timestamp-delete" style="background-color: #8C6F61" onclick="blockFn.removeTimestampEntry(this)"><span></span></button>
+      `;
+      // entry.onclick = () => { callSeek(seconds) };
+      e.querySelector("#timestamp-list").appendChild(entry);
+
+      let scrn = document.createElement('button');
+      scrn.className = "timestamp-screenshot";
+      // scrn.style.backgroundColor = "#61688C";
+      scrn.style.backgroundColor = "#618C85";
+      scrn.title = `Save screenshot at ${isoFormatted}`;
+      scrn.innerHTML = "<span></span>";
+      scrn.onclick = () => { saveVideoScreenshot({ seconds, isoFormatted }) };
+      entry.appendChild(scrn);
+    })
   });
 
   e.querySelectorAll('.time-control').forEach(item => {
     item.addEventListener('click', event => {
       let errMsg = 'Invalid time amount';
       try {
-        let amount = event.target.dataset.amount;
+        let amount = event.currentTarget.dataset.amount;
         if (amount === "+x") {
           amount = Number(document.querySelector("#custom-time-control-amount").value.trim());
           if (amount < 0) {
