@@ -226,7 +226,8 @@ function serve() {
     startPath: 'index.html',
     server: {
       baseDir: './dist/'
-    }
+    },
+    cors: true
   });
 
   watch(['./dist/**/*'], { events: ['change'] }, reload);

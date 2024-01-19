@@ -1,0 +1,353 @@
+
+/**
+ * refs:
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/Document/documentElement
+ *  - https://stackoverflow.com/a/71841743 - horizontal scroll with scrollwhell using js
+ *  - https://stackoverflow.com/a/73569651 - get all position fixed elements
+ *  - https://www.freecodecamp.org/news/check-if-a-javascript-string-is-a-url/
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/Element/removeAttribute
+ *  - https://cssgradient.io/
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
+ *  - https://css-tricks.com/snippets/css/system-font-stack/
+ *  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+ *  - https://stackoverflow.com/a/65413839 - replaceChildren
+ *  - https://gist.github.com/nmsdvid/8807205?permalink_comment_id=3205518#gistcomment-3205518 - debounce function
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute
+ *  - https://developer.mozilla.org/en-US/docs/Web/API/Element/removeAttribute
+ *  -
+ */
+
+const BLOCK_NAME = "bookmarklets-livebar";
+
+const removeItself = () => {
+  document.querySelectorAll(".top-gapped").forEach(el => {
+    let currentTop = parseFloat(getComputedStyle(el).top, 10);
+    el.style.top = Number(currentTop - window.blockFn.BAR_SIZE) + "px";
+    el.classList.remove('top-gapped');
+  });
+
+  let e = document.querySelector("#" + BLOCK_NAME + "-bar");
+  e.parentNode.removeChild(e);
+  e = null;
+  window.blockFn = undefined;
+};
+
+if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
+  // it the element is already created, just update the existing list
+  // to close, force user to click the 'close' button in the bar
+  window.blockFn.fetchUpdatedBookmarklets();
+} else {
+
+  window.blockFn = {};
+  window.blockFn.removeItself = removeItself;
+
+  const formattedDatetime = () => (new Date()).toLocaleString();
+  const debounce = (callback, delay = 250) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        timeoutId = null;
+        callback(...args);
+      }, delay);
+    }
+  };
+
+  const naiveIsValidUrl = (urlString) => {
+    let url;
+    try {
+      url = new URL(urlString);
+    }
+    catch (e) {
+      return false;
+    }
+    return ["http:", "https:"].includes(url.protocol);
+  };
+
+  const BAR_SIZE = 36;
+  window.blockFn.BAR_SIZE = BAR_SIZE;
+  const SOURCE_URL = '/* @twing-start{{ sourceUrl }}@twing-end */';
+  const SOURCE_ENV = '/* @twing-start{{ sourceEnv }}@twing-end */';
+  let LAST_QUERY_AT = formattedDatetime();
+  let CYCLIC_SELF_BOOKMARKLET;
+
+  const addPageTopGap = () => {
+    // top gap all position fixed, sticky elements
+    const allFixedElementsWithTop = [].filter.call(
+      document.querySelectorAll('*'), // madness? this is perfection
+      el => {
+        let comps = getComputedStyle(el);
+        return ['fixed', 'sticky'].includes(comps.position) && (comps.top === "0px" || comps.top === "0");
+      }
+    );
+
+    allFixedElementsWithTop.forEach(el => {
+      let currentTop = parseFloat(getComputedStyle(el).top, 10);
+      el.style.top = Number(BAR_SIZE + currentTop) + "px";
+      el.classList.add('top-gapped'); // DOPA DOWWNNNN
+    });
+  };
+  window.blockFn.addPageTopGap = addPageTopGap;
+
+  const createBookmarkletEntry = (name, link, title = '') => {
+    title = (title === '') ? name : title;
+    let iconEntry = document.createElement('div');
+    iconEntry.className = "bookmarklet-icon-entry";
+    iconEntry.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M12 4.467c0-.405.262-.75.559-1.027.276-.257.441-.584.441-.94 0-.828-.895-1.5-2-1.5s-2 .672-2 1.5c0 .362.171.694.456.953.29.265.544.6.544.994a.968.968 0 0 1-1.024.974 39.655 39.655 0 0 1-3.014-.306.75.75 0 0 0-.847.847c.14.993.242 1.999.306 3.014A.968.968 0 0 1 4.447 10c-.393 0-.729-.253-.994-.544C3.194 9.17 2.862 9 2.5 9 1.672 9 1 9.895 1 11s.672 2 1.5 2c.356 0 .683-.165.94-.441.276-.297.622-.559 1.027-.559a.997.997 0 0 1 1.004 1.03 39.747 39.747 0 0 1-.319 3.734.75.75 0 0 0 .64.842c1.05.146 2.111.252 3.184.318A.97.97 0 0 0 10 16.948c0-.394-.254-.73-.545-.995C9.171 15.693 9 15.362 9 15c0-.828.895-1.5 2-1.5s2 .672 2 1.5c0 .356-.165.683-.441.94-.297.276-.559.622-.559 1.027a.998.998 0 0 0 1.03 1.005c1.337-.05 2.659-.162 3.961-.337a.75.75 0 0 0 .644-.644c.175-1.302.288-2.624.337-3.961A.998.998 0 0 0 16.967 12c-.405 0-.75.262-1.027.559-.257.276-.584.441-.94.441-.828 0-1.5-.895-1.5-2s.672-2 1.5-2c.362 0 .694.17.953.455.265.291.601.545.995.545a.97.97 0 0 0 .976-1.024 41.159 41.159 0 0 0-.318-3.184.75.75 0 0 0-.842-.64c-1.228.164-2.473.271-3.734.319A.997.997 0 0 1 12 4.467Z" />
+      </svg>
+      <a href="${link}" title="${title}">${name}</a>
+    `;
+    return iconEntry;
+  };
+  window.blockFn.createBookmarkletEntry = createBookmarkletEntry;
+
+  const fetchUpdatedBookmarklets = () => {
+    fetch(SOURCE_URL).then((response) => {
+      return response.text();
+    }).then((html) => {
+      let parser = new DOMParser();
+      let doc = parser.parseFromString(html, 'text/html');
+      let links = doc.querySelectorAll('a');
+      if (links.length > 0) {
+        barContent.replaceChildren(); // clean the list
+        links.forEach(el => {
+          if (el.textContent.startsWith("_")) {
+            // prepend scripts in development first (they dont build by default)
+            barContent.prepend(createBookmarkletEntry(el.textContent, el.href));
+          } else {
+            barContent.append(createBookmarkletEntry(el.textContent, el.href));
+          }
+
+          // if the bookmarklet-livebar element is present in the list,
+          // save a reference so we can modify it later
+          if (['_' + BLOCK_NAME, BLOCK_NAME].includes(el.textContent)) {
+            if (
+              (SOURCE_ENV == 'local' && el.textContent.startsWith("_")) ||
+              (SOURCE_ENV == 'live' && BLOCK_NAME == el.textContent)) {
+              CYCLIC_SELF_BOOKMARKLET = el;
+              bar.querySelector("#bookmarklets_source_url").removeAttribute('disabled');
+            }
+          }
+        });
+        // this varies between 400 and 560, to prevent unnecessary computing just fix it to 570
+        // let controlElSize = bar.querySelector(".bookmarklets-control").offsetWidth;
+
+        // 160px = entry max-width
+        barContent.style.width = Number(links.length * 160 + 570) + "px";
+
+        bar.querySelector("#bookmarklets_last_query_at").textContent = formattedDatetime();
+      }
+    }).catch(function (err) {
+      // There was an error
+      console.warn('Something went wrong.', err);
+    });
+  }
+  window.blockFn.fetchUpdatedBookmarklets = fetchUpdatedBookmarklets;
+
+  // create horizontal scrollable bar
+  let bar = document.createElement("div");
+  bar.id = BLOCK_NAME + "-bar";
+  bar.innerHTML = `
+        <style>
+        html, ytd-app {
+          margin-top: ${BAR_SIZE}px;
+        }
+
+        #${BLOCK_NAME}-bar {
+          width: 100vw;
+          position: fixed;
+          top: 0;
+          overflow-x: hidden;
+          background-color: rgb(53, 54, 58);
+          border-bottom: 1px solid #606164;
+          color: #fafafa;
+          z-index: 999999;
+        }
+
+        /* required to overwrite default website font-family */
+        #${BLOCK_NAME}-bar * {
+          box-sizing: border-box;
+          font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+          font-size: 12px;
+        }
+
+        #${BLOCK_NAME}-bar button {
+          background-clip: padding-box;
+          background-color: #607D8B;
+          border-radius: 3px;
+          border: none;
+          box-shadow: inset 0 -4px rgba(0,0,0,0.2);
+          box-sizing: border-box;
+          color: #fff;
+          cursor: pointer;
+          display: inline-block;
+          font-size: .75em;
+          font-weight: 600;
+          height: 100%;
+          margin: .25em;
+          overflow: hidden;
+          padding: 0 1.5em;
+          text-align: center;
+          text-decoration: none;
+          text-transform: uppercase;
+          vertical-align: middle;
+          white-space: nowrap;
+        }
+
+        #${BLOCK_NAME}-bar input {
+          background: rgb(251, 251, 251);
+          border: 2px solid transparent;
+          border-radius: 4px;
+          box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
+          box-sizing: border-box;
+          color: #262626;
+          height: 100%;
+          transition: all 0.1s ease 0s;
+        }
+
+        #${BLOCK_NAME}-bar input:focus {
+          border: 2px solid #607D8B;
+        }
+
+        #${BLOCK_NAME}-bar input:disabled {
+          border: 1px solid rgb(73, 80, 87);
+          background: rgb(52, 58, 64);
+          color: rgb(213, 217, 222);
+        }
+
+        #${BLOCK_NAME}-bar .bookmarklets-content,
+        #${BLOCK_NAME}-bar .bookmarklets-control {
+          /*width: 20000px;*/
+          height: ${BAR_SIZE}px;
+          line-height: ${BAR_SIZE}px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+        }
+        #${BLOCK_NAME}-bar .bookmarklets-content {
+          padding: 3px 0;
+        }
+        #${BLOCK_NAME}-bar .bookmarklets-control {
+          position: fixed;
+          right: 0;
+          padding: 3px 8px 3px 50px;
+          box-sizing: border-box;
+          background: rgb(53,54,58);
+          background: linear-gradient(270deg, rgba(53,54,58,1) 0%, rgba(53,54,58,1) 90%, rgba(0,0,0,0) 100%);
+        }
+        #${BLOCK_NAME}-bar .bookmarklets-control > *:not(empty) {
+          margin-left: 5px;
+        }
+        #${BLOCK_NAME}-bar .bookmarklet-icon-entry {
+          max-width: 160px;
+          height: 100%;
+          border-radius: ${BAR_SIZE - 6}px;
+          background-color: rgba(0,0,0,.1);
+          margin: 0 2px;
+          padding: 0 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          cursor: pointer;
+        }
+        #${BLOCK_NAME}-bar .bookmarklet-icon-entry a {
+          all: unset;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+        #${BLOCK_NAME}-bar .bookmarklet-icon-entry svg {
+          min-width: 18px;
+          min-height: 18px;
+          width: 18px;
+          height: 18px;
+          color: #bdc1c6;
+          margin-right: 5px;
+        }
+        #${BLOCK_NAME}-bar .bookmarklet-icon-entry:hover {
+          background-color: rgba(0,0,0,.6);
+        }
+        #${BLOCK_NAME}-bar #bookmarklet_reload svg {
+          width: 18px;
+          height: 18px;
+          margin: 0;
+        }
+        </style>
+
+        <div class="bookmarklets-control">
+          <small id="bookmarklets_last_query_at" title="Last updated at">${LAST_QUERY_AT}</small>
+          <input disabled id="bookmarklets_source_url" title="Source URL" type="url" value="${SOURCE_URL}"/>
+          <span id="bookmarklet_updated"></span>
+          <button id="bookmarklet_reload" style="padding: 0 8px" title="Update bookmarklets entries">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </button>
+          <button id="bookmarklet_close" title="Close ${BLOCK_NAME}">Close</button>
+        </div>
+    `;
+
+  // horizontal scroll
+  bar.addEventListener("wheel", (ev) => {
+    if (ev.deltaY > 0) {
+      bar.scrollLeft += 100;
+      ev.preventDefault();
+    }
+    else {
+      bar.scrollLeft -= 100;
+      ev.preventDefault();
+    }
+  });
+
+  addPageTopGap();
+
+  let barContent = document.createElement("div");
+  barContent.className = "bookmarklets-content";
+  bar.append(barContent);
+  document.documentElement.append(bar);
+  document.documentElement.classList.add(bar.id + "-appended");
+
+  bar.querySelector("#bookmarklet_reload").addEventListener('click', () => {
+    fetchUpdatedBookmarklets();
+  });
+  bar.querySelector("#bookmarklet_close").addEventListener('click', () => {
+    removeItself();
+  });
+
+  let inputHandler = (ev) => {
+    const resetInputField = () => {
+      bar.querySelector("#bookmarklet_updated").replaceChildren();
+      ev.target.value = SOURCE_URL;
+      ev.target.focus();
+    };
+
+    if (naiveIsValidUrl(ev.target.value)) {
+      let foundUrl = CYCLIC_SELF_BOOKMARKLET.href.match(encodeURIComponent(SOURCE_URL));
+
+      if (!!foundUrl) {
+        let newBookmarkletHref = CYCLIC_SELF_BOOKMARKLET.href.replace(
+          encodeURIComponent(SOURCE_URL),
+          encodeURIComponent(ev.target.value)
+        );
+
+        let newBookmarklet = createBookmarkletEntry(
+          CYCLIC_SELF_BOOKMARKLET.textContent,
+          newBookmarkletHref,
+          `${BLOCK_NAME} with updated Source URL`
+        );
+        bar.querySelector("#bookmarklet_updated").replaceChildren(newBookmarklet);
+      } else {
+        resetInputField();
+      }
+    } else {
+      resetInputField();
+    }
+  };
+
+  let debouncedInputHandler = debounce(inputHandler, 800);
+  bar.querySelector("#bookmarklets_source_url").addEventListener('input', debouncedInputHandler);
+
+  fetchUpdatedBookmarklets();
+}
