@@ -29,17 +29,20 @@ const removeItself = () => {
   let e = document.querySelector("#" + BLOCK_NAME + "-bar");
   e.parentNode.removeChild(e);
   e = null;
-  window.blockFn = undefined;
+  window.blockFn[BLOCK_NAME] = null;
+  delete window.blockFn[BLOCK_NAME];
 };
 
 if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
   // it the element is already created, just update the existing list
   // to close, force user to click the 'close' button in the bar
-  window.blockFn.fetchUpdatedBookmarklets();
+  window.blockFn[BLOCK_NAME].fetchUpdatedBookmarklets();
 } else {
-
-  window.blockFn = {};
-  window.blockFn.removeItself = removeItself;
+  if (!window.blockFn) {
+    window.blockFn = {};
+  }
+  window.blockFn[BLOCK_NAME] = {};
+  window.blockFn[BLOCK_NAME].removeItself = removeItself;
 
   const formattedDatetime = () => (new Date()).toLocaleString();
   const debounce = (callback, delay = 250) => {
@@ -65,7 +68,7 @@ if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
   };
 
   const BAR_SIZE = 36;
-  window.blockFn.BAR_SIZE = BAR_SIZE;
+  window.blockFn[BLOCK_NAME].BAR_SIZE = BAR_SIZE;
   const SOURCE_URL = '/* @twing-start{{ sourceUrl }}@twing-end */';
   const SOURCE_ENV = '/* @twing-start{{ sourceEnv }}@twing-end */';
   let LAST_QUERY_AT = formattedDatetime();
@@ -87,7 +90,7 @@ if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
       el.classList.add('top-gapped'); // DOPA DOWWNNNN
     });
   };
-  window.blockFn.addPageTopGap = addPageTopGap;
+  window.blockFn[BLOCK_NAME].addPageTopGap = addPageTopGap;
 
   const createBookmarkletEntry = (name, link, title = '') => {
     title = (title === '') ? name : title;
@@ -101,7 +104,7 @@ if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
     `;
     return iconEntry;
   };
-  window.blockFn.createBookmarkletEntry = createBookmarkletEntry;
+  window.blockFn[BLOCK_NAME].createBookmarkletEntry = createBookmarkletEntry;
 
   const fetchUpdatedBookmarklets = () => {
     fetch(SOURCE_URL).then((response) => {
@@ -144,7 +147,7 @@ if (document.querySelector("#" + BLOCK_NAME + "-bar")) {
       console.warn('Something went wrong.', err);
     });
   }
-  window.blockFn.fetchUpdatedBookmarklets = fetchUpdatedBookmarklets;
+  window.blockFn[BLOCK_NAME].fetchUpdatedBookmarklets = fetchUpdatedBookmarklets;
 
   // create horizontal scrollable bar
   let bar = document.createElement("div");
