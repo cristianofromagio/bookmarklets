@@ -65,4 +65,13 @@ const
 
       e[p] = v;
     }
+  },
+  /**
+   * Returns the value at the path from the object or undefined. Used to replace optional chaining.
+   *
+   * @param {Object} obj - Object to read values from.
+   * @param {String} path - Path using dot notation (ie. "style.color").
+   */
+  nestedValue = (obj, path) => {
+    return path.split('.').reduce((acc, key) => acc && acc[key], obj);
   };
