@@ -8,9 +8,12 @@
  *        - youtube-dl --playlist-items 0 -O playlist:"%(channel_id)s,%(channel_url)s,%(channel)s" -a channels.txt > channels_csv.txt
  *        - this wil lgive a LibreTube-compatible import format (TODO: figure out some encoding/formatting errors)
  *        - add a line at the top with `Channel ID,Channel URL,Channel title` and save as .csv
+ *  - https://www.amitmerchant.com/create-and-download-text-files-using-javascript/
+ *  - https://gist.github.com/hazycora/bc41e673aff4c9c7846d80e145574285
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
+// @twing-include {% include 'building_blocks/shared/scripts/bliss.js' %}
 
 const BLOCK_NAME = "list-youtube-subscriptions";
 
@@ -52,200 +55,309 @@ const copyTextareaToClipboard = (textarea) => {
   displayAlert('All subscriptions copied!');
 };
 
+const saveTextAsFile = (textToWrite, fileNameToSaveAs, fileType) => {
+  let textFileAsBlob = new Blob([textToWrite], { type: fileType });
+  let downloadLink = document.createElement('a');
+  downloadLink.download = fileNameToSaveAs;
+  downloadLink.innerText = 'Download File';
+
+  if (window.webkitURL != null) {
+      downloadLink.href = window.webkitURL.createObjectURL(
+          textFileAsBlob
+      );
+  } else {
+      downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+  }
+
+  downloadLink.click();
+};
+
 if (document.querySelector("#" + BLOCK_NAME)) {
   removeItself();
 } else {
 
-  let e = document.createElement("details");
-  e.id = BLOCK_NAME;
-  e.setAttribute("open", "");
-  e.innerHTML = `
-    <style>
-      #${BLOCK_NAME} {
-        display: block;
-        padding: 0;
-        font-family: sans-serif;
-        position: fixed;
-        font-size: 16px;
-        z-index: 9999;
-        right: 0;
-        top: 0;
-        border-radius: 5px;
-        background-color: rgba(27, 32, 50, .9);
-        margin: auto;
-        color: white;
-        border: 3px solid #4d646f;
-        text-align: center;
-        width: 340px;
-      }
+  let e = Bliss.create("details", {
+    id: BLOCK_NAME,
+    open: "open",
+    contents: [
+      {
+        tag: "style",
+        textContent: `
+          #${BLOCK_NAME} {
+            display: block;
+            padding: 0;
+            font-family: sans-serif;
+            position: fixed;
+            font-size: 16px;
+            z-index: 9999;
+            right: 0;
+            top: 0;
+            border-radius: 5px;
+            background-color: rgba(27, 32, 50, .9);
+            margin: auto;
+            color: white;
+            border: 3px solid #4d646f;
+            text-align: center;
+            width: 340px;
+          }
 
-      #${BLOCK_NAME} > summary {
-        background-color: #607D8B;
-        color: #fff;
-        cursor: pointer;
-        font-size: .75em;
-        padding: .5em .75em;
-        text-align: left;
-        user-select: none;
-        margin: 0;
-      }
-      #${BLOCK_NAME} summary {
-        display: list-item;
-      }
-      #${BLOCK_NAME} * {
-        font-family: sans-serif;
-        box-sizing: border-box;
-      }
-      #${BLOCK_NAME} button {
-        background-clip: padding-box;
-        background-color: #607D8B;
-        border-radius: 3px;
-        border: none;
-        box-shadow: inset 0 -4px rgba(0,0,0,0.2);
-        box-sizing: border-box;
-        color: #fff;
-        cursor: pointer;
-        display: inline-block;
-        font-size: .75em;
-        font-weight: 600;
-        line-height: 30px;
-        margin: .25em;
-        overflow: hidden;
-        padding: 0 1.5em;
-        text-align: center;
-        text-decoration: none;
-        text-transform: uppercase;
-        vertical-align: middle;
-        white-space: nowrap;
-      }
-      #${BLOCK_NAME} button:disabled,
-      #${BLOCK_NAME} button[disabled] {
-        cursor: not-allowed;
-        opacity: .7;
-      }
-      #${BLOCK_NAME} input,
-      #${BLOCK_NAME} textarea {
-        color: #262626;
-        font-size: 16px;
-        line-height: 20px;
-        min-height: 28px;
-        border-radius: 4px;
-        padding: 8px;
-        border: 2px solid transparent;
-        box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
-        background: rgb(251, 251, 251);
-        transition: all 0.1s ease 0s;
-        margin: 0;
-        box-sizing: border-box;
-        width: 100%;
-        font-family: monospace;
-        font-weight: bold;
-      }
-      #${BLOCK_NAME} input:focus {
-        border: 2px solid #607D8B;
-      }
-      #${BLOCK_NAME} input[type=checkbox],
-      #${BLOCK_NAME} input[type=radio] {
-        display: inline;
-        width: 1em;
-        height: 1em;
-        min-height: unset;
-      }
-      #${BLOCK_NAME} #alert {
-        position: absolute;
-        bottom: -.75rem;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: .25rem .75rem;
-        background-color: #222;
-        color: #fff;
-        border: 1px solid #f1f1f1;
-        border-radius: 5px;
-        display: none;
-        font-size: 12px;
-      }
-      #${BLOCK_NAME} p {
-        margin: 4px 0 2px;
-        text-align: left;
-      }
-      #${BLOCK_NAME} hr {
-        padding: 0;
-        margin: 8px 0;
-      }
-      .overlap-wrapper {
-        position: relative;
-        min-width: 320px;
-        min-height: 190px;
-        margin-bottom: 25px;
-      }
-      textarea#${BLOCK_NAME}-subs {
-        margin-top: 20px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: inline-block;
-        resize: none;
-      }
-      #${BLOCK_NAME}-filters {
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
-        background-color: #fff;
-        position: absolute;
-        width: 100%;
-        top: 0;
-        left: 0;
-        color: #000;
-        padding: 5px 5px 0;
-      }
+          #${BLOCK_NAME} > summary {
+            background-color: #607D8B;
+            color: #fff;
+            cursor: pointer;
+            font-size: .75em;
+            padding: .5em .75em;
+            text-align: left;
+            user-select: none;
+            margin: 0;
+          }
+          #${BLOCK_NAME} summary {
+            display: list-item;
+          }
+          #${BLOCK_NAME} * {
+            font-family: sans-serif;
+            box-sizing: border-box;
+          }
+          #${BLOCK_NAME} button {
+            background-clip: padding-box;
+            background-color: #607D8B;
+            border-radius: 3px;
+            border: none;
+            box-shadow: inset 0 -4px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            font-size: .75em;
+            font-weight: 600;
+            line-height: 30px;
+            margin: .25em;
+            overflow: hidden;
+            padding: 0 1.5em;
+            text-align: center;
+            text-decoration: none;
+            text-transform: uppercase;
+            vertical-align: middle;
+            white-space: nowrap;
+          }
+          #${BLOCK_NAME} button:disabled,
+          #${BLOCK_NAME} button[disabled] {
+            cursor: not-allowed;
+            opacity: .7;
+          }
+          #${BLOCK_NAME} input,
+          #${BLOCK_NAME} textarea {
+            color: #262626;
+            font-size: 16px;
+            line-height: 20px;
+            min-height: 28px;
+            border-radius: 4px;
+            padding: 8px;
+            border: 2px solid transparent;
+            box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
+            background: rgb(251, 251, 251);
+            transition: all 0.1s ease 0s;
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+            font-family: monospace;
+            font-weight: bold;
+          }
+          #${BLOCK_NAME} input:focus {
+            border: 2px solid #607D8B;
+          }
+          #${BLOCK_NAME} input[type=checkbox],
+          #${BLOCK_NAME} input[type=radio] {
+            display: inline;
+            width: 1em;
+            height: 1em;
+            min-height: unset;
+          }
+          #${BLOCK_NAME} #alert {
+            position: absolute;
+            bottom: -.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: .25rem .75rem;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #f1f1f1;
+            border-radius: 5px;
+            display: none;
+            font-size: 12px;
+          }
+          #${BLOCK_NAME} p {
+            margin: 4px 0 2px;
+            text-align: left;
+          }
+          #${BLOCK_NAME} hr {
+            padding: 0;
+            margin: 8px 0;
+          }
+          .overlap-wrapper {
+            position: relative;
+            min-width: 320px;
+            min-height: 190px;
+            margin-bottom: 25px;
+          }
+          textarea#${BLOCK_NAME}-subs {
+            margin-top: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: inline-block;
+            resize: none;
+          }
+          #${BLOCK_NAME}-filters {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            background-color: #fff;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            color: #000;
+            padding: 5px 5px 0;
+          }
 
-      #${BLOCK_NAME} .d-none {
-        display: none;
+          #${BLOCK_NAME} .d-none {
+            display: none;
+          }
+          #${BLOCK_NAME} .d-full {
+            display: block;
+            margin: 4px auto;
+            width: 100%;
+          }
+          #${BLOCK_NAME} .d-flex {
+            display: flex;
+          }
+        `
+      },
+      {
+        tag: "summary",
+        textContent: `${BLOCK_NAME}`
+      },
+      {
+        tag: "span",
+        id: "alert"
+      },
+      {
+        tag: "div",
+        style: "padding: 8px",
+        contents: [
+          {
+            tag: "div",
+            className: "overlap-wrapper",
+            contents: [
+              {
+                tag: "textarea",
+                spellcheck: "false",
+                rows: 8,
+                cols: 30,
+                id: `${BLOCK_NAME}-subs`,
+                placeholder: 'Click "List subscriptions" below',
+                wrap: "off",
+                disabled: true,
+                style: "white-space: pre; overflow-x: scroll"
+              },
+              {
+                tag: "div",
+                id: `${BLOCK_NAME}-filters`,
+                className: "d-flex",
+                style: "justify-content:space-between",
+                contents: [
+                  {
+                    tag: "label",
+                    contents: [
+                      {
+                        tag: "input",
+                        type: "checkbox",
+                        value: "name",
+                        checked: true
+                      },
+                      " name"
+                    ]
+                  },
+                  {
+                    tag: "label",
+                    contents: [
+                      {
+                        tag: "input",
+                        type: "checkbox",
+                        value: "link",
+                        checked: true
+                      },
+                      " link"
+                    ]
+                  },
+                  {
+                    tag: "label",
+                    contents: [
+                      {
+                        tag: "input",
+                        type: "checkbox",
+                        value: "avatar",
+                        checked: true
+                      },
+                      " avatar"
+                    ]
+                  },
+                  {
+                    tag: "label",
+                    contents: [
+                      {
+                        tag: "input",
+                        type: "checkbox",
+                        value: "subs"
+                      },
+                      " subs"
+                    ]
+                  },
+                  {
+                    tag: "label",
+                    contents: [
+                      {
+                        tag: "input",
+                        type: "checkbox",
+                        value: "videos"
+                      },
+                      " videos"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            tag: "button",
+            className: "d-none",
+            id: `${BLOCK_NAME}-subs-copy`,
+            textContent: "copy all"
+          },
+          {
+            tag: "button",
+            className: "d-none",
+            id: `${BLOCK_NAME}-subs-download`,
+            textContent: "download export CSV"
+          },
+          {
+            tag: "button",
+            className: "d-full",
+            id: "listSubsButtonTrigger",
+            textContent: "List subscriptions"
+          },
+          {
+            tag: "span",
+            id: "logger-output"
+          }
+        ]
       }
-      #${BLOCK_NAME} .d-full {
-        display: block;
-        margin: 4px auto;
-        width: 100%;
-      }
-      #${BLOCK_NAME} .d-flex {
-        display: flex;
-      }
-    </style>
-
-    <summary>${BLOCK_NAME}</summary>
-
-    <span id="alert"></span>
-
-    <div style="padding: 8px">
-
-      <div class="overlap-wrapper">
-        <textarea
-          spellcheck="false"
-          rows="8"
-          cols="30"
-          id="${BLOCK_NAME}-subs"
-          placeholder='Click "List subscriptions" below'
-          wrap="off"
-          disabled
-          style="white-space: pre; overflow-x: scroll"></textarea>
-
-        <div id="${BLOCK_NAME}-filters" class="d-flex" style="justify-content:space-between">
-          <label><input type="checkbox" value="name" checked/> name</label>
-          <label><input type="checkbox" value="link" checked/> link</label>
-          <label><input type="checkbox" value="avatar" checked/> avatar</label>
-          <label><input type="checkbox" value="subs"/> subs</label>
-          <label><input type="checkbox" value="videos"/> videos</label>
-        </div>
-      </div>
-
-      <button class="d-none" id="${BLOCK_NAME}-subs-copy">copy all</button>
-      <button class="d-full" id="listSubsButtonTrigger">List subscriptions</button>
-
-      <span id="logger-output"></span>
-
-    </div>
-  `;
+    ]
+  });
 
   let close = document.createElement("button");
   close.onclick = () => { removeItself() };
@@ -306,6 +418,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     });
     e.querySelector(`#${BLOCK_NAME}-subs`).value = multilineOutput;
     e.querySelector(`#${BLOCK_NAME}-subs-copy`).classList.add('d-full');
+    e.querySelector(`#${BLOCK_NAME}-subs-download`).classList.add('d-full');
 
     releaseInterface();
   };
@@ -434,6 +547,18 @@ if (document.querySelector("#" + BLOCK_NAME)) {
     copyTextareaToClipboard(e.querySelector(`#${BLOCK_NAME}-subs`));
   });
 
+  e.querySelector(`#${BLOCK_NAME}-subs-download`).addEventListener('click', () => {
+    let csvText = "Channel Id,Channel Url,Channel Title\n" + ytInitialData.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents.map(e => {
+      if (!e.itemSectionRenderer) return;
+      return e.itemSectionRenderer.contents[0].shelfRenderer.content.expandedShelfContentsRenderer.items
+    }).flat().map(e => {
+      if (e && e.channelRenderer) return `${e.channelRenderer.channelId},http://www.youtube.com/channel/${e.channelRenderer.channelId},${e.channelRenderer.title.simpleText}`;
+      return '';
+    }).join('\n');
+
+    saveTextAsFile(csvText, 'youtube-subscriptions-export.csv', 'text/plain');
+  });
+
   $$(`#${BLOCK_NAME}-filters input[type="checkbox"]`).forEach((checkbox) => {
     checkbox.addEventListener('change', () => {
       if (subsSelection.size > 0) {
@@ -441,7 +566,7 @@ if (document.querySelector("#" + BLOCK_NAME)) {
       }
     });
   });
-  
+
   // @twing-include {% include 'building_blocks/shared/partials/move-handler.js' %}
 
 }
