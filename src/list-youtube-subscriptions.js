@@ -13,7 +13,7 @@
  */
 
 // @twing-include {% include 'building_blocks/shared/partials/utils.js' %}
-// @twing-include {% include 'building_blocks/shared/scripts/bliss.js' %}
+// @twing-include {% include 'building_blocks/shared/scripts/bliss-min.js' %}
 
 const BLOCK_NAME = "list-youtube-subscriptions";
 
